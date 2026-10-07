@@ -1,0 +1,19 @@
+# 与线上部署一致。Secret 不在这里，用：
+#   npx wrangler secret put ADMIN_TOKEN
+#   npx wrangler secret put GH_TOKEN
+name = "jingzhe-publisher"
+main = "src/index.js"
+compatibility_date = "2026-08-14"
+
+[vars]
+ALLOWED_ORIGINS = "https://peixy.xyz,http://localhost:1313,http://127.0.0.1:1313"
+GITHUB_OWNER = "Pz0120"
+GITHUB_REPO = "blog"
+GITHUB_BRANCH = "main"
+GITHUB_USER_AGENT = "Jingzhe-Publisher-Worker"
+IMAGE_BASE_URL = "https://pub-9486120c22024bfabb4ce77614684508.r2.dev"
+
+[[r2_buckets]]
+binding = "R2_BUCKET"
+bucket_name = "peixy-images"
+preview_bucket_name = "peixy-images-preview"

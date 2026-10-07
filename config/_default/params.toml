@@ -49,9 +49,9 @@ RSSNoContent = false
   avatarBaseUrl = "https://weavatar.com/avatar"
 
 [services.publisher]
-  workerUrl = ""
+  workerUrl = "https://jingzhe-publisher.peixiaoyi88.workers.dev"
   draftUrl = ""
-  imageBaseUrl = ""
+  imageBaseUrl = "https://pub-9486120c22024bfabb4ce77614684508.r2.dev"
 
 [services.images]
   enabled = false
