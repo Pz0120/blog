@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Jingzhe book data",
+  "description": "书架数据契约。镜像 schemas/data/movie.schema.json 的结构：顶层是数组，每一项一本书。数据来源为微信读书官方 Agent Skill（Tencent/WeChatReading），字段名与微信读书返回值的对应关系见模块 README。",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["id", "title", "status"],
+    "properties": {
+      "id": {
+        "type": ["string", "number"],
+        "description": "微信读书 bookId，作为稳定身份"
+      },
+      "title": {
+        "type": "string",
+        "minLength": 1
+      },
+      "author": {
+        "type": "string"
+      },
+      "translator": {
+        "type": "string"
+      },
+      "cover": {
+        "type": "string",
+        "description": "封面图 URL，用于悬停详情卡"
+      },
+      "shelf": {
+        "type": "string",
+        "description": "书单名，对应微信读书 archive.name。决定这条书脊排在哪一层书架上；缺失时归入「未归类」"
+      },
+      "category": {
+        "type": "string",
+        "description": "微信读书 category，如「哲学宗教-宗教」"
+      },
+      "publisher": {
+        "type": "string"
+      },
+      "isbn": {
+        "type": "string"
+      },
+      "publishTime": {
+        "type": "string",
+        "description": "出版时间，微信读书原始格式即可"
+      },
+      "status": {
+        "type": "string",
+        "enum": ["finished", "reading", "want"],
+        "description": "finished=读完（书脊满色）、reading=在读（书脊有进度填充）、want=想读（书脊降透明度）"
+      },
+      "progress": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 100,
+        "description": "阅读进度百分比，对应微信读书 progress。finished 时渲染为 100"
+      },
+      "readingTime": {
+        "type": "number",
+        "minimum": 0,
+        "description": "累计阅读时长（秒），对应微信读书 readingTime"
+      },
+      "words": {
+        "type": ["string", "number"],
+        "description": "总字数，对应微信读书 totalWords。用于计算书脊厚度；缺失时用序号做稳定抖动"
+      },
+      "rating": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 5,
+        "description": "你自己的评分（0-5）。注意这不是微信读书的公共评分"
+      },
+      "comment": {
+        "type": "string",
+        "description": "你的短评，显示在悬停详情卡里"
+      },
+      "link": {
+        "type": "string",
+        "description": "点击书脊的去向，建议微信读书书籍详情页"
+      },
+      "dominant_color": {
+        "type": "string",
+        "description": "封面主色调（浅色模式书脊底色）。对应微信读书 coverBoxInfo.dominate_color.hex"
+      },
+      "dominant_color_dark": {
+        "type": "string",
+        "description": "深色模式书脊底色。建议取 coverBoxInfo.colors 里 key 为 1/4、1/6、1/8 的深色端之一；缺失时回退 dominant_color"
+      },
+      "palette": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "封面调色板（可选），用于书脊渐变"
+      },
+      "create_time": {
+        "type": "string",
+        "description": "标记时间，格式 YYYY-MM-DD"
+      },
+      "updated_at": {
+        "type": "string",
+        "description": "本条目最近一次同步时间"
+      }
+    },
+    "additionalProperties": true
+  }
+}

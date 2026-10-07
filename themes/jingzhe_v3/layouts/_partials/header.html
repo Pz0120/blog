@@ -1,0 +1,59 @@
+<header class="floating-header">
+  {{ $currentPage := . }}
+
+  <button type="button" class="compact-nav-trigger" aria-label="展开导航" aria-expanded="false" aria-hidden="true" tabindex="-1">
+    <span class="compact-nav-icon" aria-hidden="true"></span>
+  </button>
+
+  <nav class="main-nav-menu">
+    <ul class="menu-list">
+      {{ range site.Menus.main }}
+        {{ $featureName := default "" .Params.feature }}
+        {{ $showMenuItem := or (not $featureName) (partial "jingzhe/feature-enabled.html" $featureName) }}
+        {{ if $showMenuItem }}
+        {{ $active := partial "jingzhe/menu-active.html" (dict "page" $currentPage "item" .) }}
+
+        <li class="menu-item{{ if $active }} is-active{{ end }}" data-menu-identifier="{{ .Identifier }}">
+          <a href="{{ .URL }}"
+             {{ if .Params.new_window }}target="_blank"{{ end }}
+             >
+
+            <span class="menu-icon">
+              {{ partial "jingzhe/nav-icon.html" .Identifier }}
+            </span>
+            <span class="menu-name">{{ .Name }}</span>
+          </a>
+        </li>
+        {{ end }}
+      {{ end }}
+    </ul>
+  </nav>
+
+  <div class="header-actions">
+    <div class="action-item avatar-mobile">
+      {{ with site.Params.brand.avatar }}
+        <a href="/about" aria-label="关于 {{ site.Title }}"><img src="{{ . }}" alt="{{ site.Params.brand.avatarAlt }}" title="{{ site.Title }}"></a>
+      {{ end }}
+    </div>
+
+    <div class="action-item">
+      <a href="{{ with site.Home.OutputFormats.Get "RSS" }}{{ .Permalink }}{{ else }}{{ "index.xml" | absURL }}{{ end }}" target="_blank" title="Rss">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 1 23 23" fill="currentColor"><path d="M3 3C12.9411 3 21 11.0589 21 21H18C18 12.7157 11.2843 6 3 6V3ZM3 10C9.07513 10 14 14.9249 14 21H11C11 16.5817 7.41828 13 3 13V10ZM3 17C5.20914 17 7 18.7909 7 21H3V17Z"></path></svg>
+      </a>
+    </div>
+
+    <div class="action-item theme-dropdown-trigger">
+      <button type="button" class="theme-dropdown-button" aria-label="切换主题" aria-haspopup="true">
+        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M11 17a4 4 0 0 1-8 0V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2Z"/><path d="M16.7 13H19a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H7m0-4h.01"/><path d="m11 8l2.3-2.3a2.4 2.4 0 0 1 3.404.004L18.6 7.6a2.4 2.4 0 0 1 .026 3.434L9.9 19.8"/></g></svg>
+      </button>
+      <div class="dropdown-panel">
+        <div class="theme-options">
+          <button type="button" class="theme-item" data-mode="light">浅色</button>
+          <button type="button" class="theme-item" data-mode="dark">深色</button>
+          <button type="button" class="theme-item" data-mode="auto">自动</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>

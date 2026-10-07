@@ -1,0 +1,67 @@
+{{ define "body_classes" }}page-blog-list{{ end }}
+
+{{ define "main" }}
+{{ $contentTypeName := default "posts" site.Params.contentTypeName }}
+
+{{ $context := . }}
+{{ if .IsHome }}
+  {{ $context = site }}
+{{ end }}
+{{ $pages := where $context.RegularPages "Type" $contentTypeName }}
+
+{{ with $pages }}
+<div class="blog-list-container">
+  
+  <section class="featured-posts">
+    {{ range $index, $page := first 4 . }}
+    <article class="featured-post-card"> 
+      
+      <header class="post-header">
+        <h2 class="post-title">
+          <a href="{{ .RelPermalink }}">{{ .Title | markdownify }}</a>
+        </h2>
+      </header>     
+
+      {{ with .Params.image }}
+      {{ $image := partial "jingzhe/responsive-image.html" (dict "src" .) }}
+      <div class="post-cover">
+        <a href="{{ $page.RelPermalink }}">
+          {{ if eq $index 0 }}
+            <img fetchpriority="high" decoding="async" src="{{ $image.original | safeURL }}"
+                 {{ if $image.enabled }}srcset="{{ $image.small | safeURL }} {{ $image.smallWidth }}w, {{ $image.large | safeURL }} {{ $image.largeWidth }}w"
+                 sizes="(min-width: 840px) 800px, calc(100vw - 40px)"{{ end }}
+                 alt="{{ $page.Title }}" />
+          {{ else }}
+            <img loading="lazy" decoding="async" src="{{ $image.original | safeURL }}"
+                 {{ if $image.enabled }}srcset="{{ $image.small | safeURL }} {{ $image.smallWidth }}w, {{ $image.large | safeURL }} {{ $image.largeWidth }}w"
+                 sizes="(min-width: 840px) 800px, calc(100vw - 40px)"{{ end }}
+                 alt="{{ $page.Title }}" />
+          {{ end }}
+        </a>          
+      </div>
+      {{ end }}
+      <div class="post-summary">{{ .Params.description }}</div>    
+      <footer class="post-meta">
+           <time class="archive-time" datetime="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">
+            {{ partial "jingzhe/date.html" .Date }}
+          </time>
+      </footer>
+    </article>
+    {{ end }}
+  </section>
+
+  <section class="secondary-posts">
+    {{ range after 4 . }}
+    <article class="secondary-post-card"> 
+        <h3 class="archive-title"><a href="{{ .RelPermalink }}">{{ .Title }}</a></h3>
+         <time class="archive-time" datetime="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">
+            {{ partial "jingzhe/date.html" .Date }}
+          </time>
+    </article>
+    {{ end }}
+  </section>
+
+</div>
+{{ end }}
+
+{{ end }}

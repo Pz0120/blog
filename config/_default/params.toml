@@ -1,0 +1,81 @@
+profile = "core"
+description = "工作生活的随笔与记录"
+contentTypeName = "posts"
+addDot = false
+RSSNoContent = false
+
+[author]
+  name = "我"
+  email = ""
+
+[brand]
+  name = "我的博客"
+  footerName = "我的博客"
+  footerTagline = ""
+  favicon = ""
+  appleTouchIcon = ""
+  avatar = ""
+  avatarAlt = ""
+  webAppTitle = "我的博客"
+  manifestPath = "/manifest.webmanifest"
+
+[repository]
+  owner = "Pz0120"
+  name = "blog"
+  branch = "main"
+  url = "https://github.com/Pz0120/blog"
+
+[assets]
+  fontRegularUrl = ""
+  fontBoldUrl = ""
+
+[features]
+  core = true
+  publisher = true
+  social = false
+  movies = true
+  books = true
+  exercise = false
+  aiCoach = false
+  externalShop = false
+
+[services.social]
+  commentsApi = ""
+  likesApi = ""
+  likesSubmitUrl = ""
+  turnstileSiteKey = ""
+  turnstileScriptUrl = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
+  adminEmail = ""
+  avatarBaseUrl = "https://weavatar.com/avatar"
+
+[services.publisher]
+  workerUrl = ""
+  draftUrl = ""
+  imageBaseUrl = ""
+
+[services.images]
+  enabled = false
+  sourceOrigin = ""
+  deliveryOrigin = ""
+  thumbWidth = 128
+  smallWidth = 640
+  largeWidth = 960
+  quality = 75
+
+[services.exercise]
+  mapboxToken = ""
+  mapboxApiOrigin = "https://api.mapbox.com"
+  mapboxEventsOrigin = "https://events.mapbox.com"
+  mapboxCssUrl = "https://lib.baomitu.com/mapbox-gl/3.2.0/mapbox-gl.css"
+  mapboxJsUrl = "https://lib.baomitu.com/mapbox-gl/3.2.0/mapbox-gl.js"
+  mapboxLightStyle = "mapbox://styles/mapbox/streets-v12"
+  mapboxDarkStyle = "mapbox://styles/mapbox/dark-v11"
+  mapCenter = [0.0, 0.0]
+  posterFilePrefix = "JingzheExercise"
+
+[services.rss]
+  followFeedId = ""
+  followUserId = ""
+
+[about]
+  photos = []

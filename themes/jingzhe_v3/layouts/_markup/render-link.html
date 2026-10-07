@@ -1,0 +1,12 @@
+{{ $url := .Destination }}
+{{ $siteHost := (urls.Parse site.BaseURL).Host }}
+{{ $targetHost := (urls.Parse $url).Host }}
+{{ $isSameHost := or (eq $targetHost $siteHost) (and $targetHost (strings.HasSuffix $targetHost (printf ".%s" $siteHost))) }}
+{{ $isInternal := or $isSameHost (strings.HasPrefix $url "/") (strings.HasPrefix $url "#") }}
+<a href="{{ $url | safeURL }}"
+    {{ if not $isInternal }} 
+        target="_blank" 
+        rel="noopener external nofollow noreferrer"
+    {{ end }}
+>
+{{ .Text | safeHTML }}</a>

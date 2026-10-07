@@ -1,0 +1,32 @@
+{{ define "body_classes" }}page-laodao-single{{ end }}
+{{ define "title" }}唠叨 - {{ .Date.Format "2006-01-02 15:04" }}{{ end }}
+
+{{ define "main" }}
+{{ $socialEnabled := partial "jingzhe/feature-enabled.html" "social" }}
+
+<div class="index-card laodao-main-card">
+  {{ partialCached "laodao-card.html" . .RelPermalink $socialEnabled }}
+</div>
+
+<div class="laodao-single-random">
+  更多唠叨碎片
+</div>
+
+<div class="index-card">
+  {{ $allLaodao := where .Site.RegularPages "Section" "laodao" }}
+  {{ $otherLaodao := $allLaodao | complement (slice .) }}
+  {{ $relatedLaodao := where (.Site.RegularPages.Related .) "Section" "laodao" }}
+  {{ $recommendedLaodao := first 5 (union $relatedLaodao $otherLaodao.ByDate.Reverse) }}
+  
+  {{ range $recommendedLaodao }}
+    {{ partialCached "laodao-card.html" . .RelPermalink $socialEnabled }}
+  {{ end }}
+</div>
+{{ if $socialEnabled }}{{ partial "jingzhe/script.html" (dict "path" "js/pages/likes-core.js" "defer" true) }}{{ end }}
+{{ partial "jingzhe/script.html" (dict "path" "js/pages/laodao.js" "defer" true) }}
+<div class="laodao-more">
+  <a href="/laodao/" class="laodao-more-b">看全部唠叨 ...</a>
+</div>
+
+{{ if $socialEnabled }}{{ partial "comments.html" . }}{{ end }}
+{{ end }}

@@ -1,0 +1,109 @@
+{{ define "body_classes" }}page-books{{ end }}
+
+{{ define "main" }}
+{{- $books := slice -}}
+{{- with resources.Get "data/books.json" -}}
+  {{- $books = . | transform.Unmarshal -}}
+{{- end -}}
+
+{{- $intro := .Params.intro | default "读过的、在读的、想读的，都排在下面。" -}}
+<div class="pagetitle">{{ $intro }}</div>
+
+{{- if not $books -}}
+  <p class="books-empty">
+    书架还是空的。把微信读书导出的数据写进 <code>assets/data/books.json</code> 就会显示。
+  </p>
+{{- else -}}
+
+{{- /* 收集书单名，保持数据中首次出现的顺序，避免地图式随机排序 */ -}}
+{{- $shelfNames := slice -}}
+{{- range $books -}}
+  {{- $name := default "未归类" .shelf -}}
+  {{- if not (in $shelfNames $name) -}}
+    {{- $shelfNames = $shelfNames | append $name -}}
+  {{- end -}}
+{{- end -}}
+
+{{- $statusLabels := dict "finished" "读完" "reading" "在读" "want" "想读" -}}
+
+<div class="books-shelves" id="books-app">
+  {{- range $shelfNames -}}
+    {{- $shelfName := . -}}
+    {{- $items := slice -}}
+    {{- range $books -}}
+      {{- if eq (default "未归类" .shelf) $shelfName -}}
+        {{- $items = $items | append . -}}
+      {{- end -}}
+    {{- end -}}
+
+    <section class="books-shelf-group">
+      <h2 class="books-shelf-title">
+        <span class="books-shelf-name">{{ $shelfName }}</span>
+        <span class="books-shelf-count">{{ len $items }}</span>
+      </h2>
+
+      <div class="books-shelf">
+        <div class="books-shelf-row">
+          {{- range $i, $book := $items -}}
+            {{- $status := default "want" $book.status -}}
+            {{- $progress := int (default 0 $book.progress) -}}
+            {{- if eq $status "finished" -}}
+              {{- $progress = 100 -}}
+            {{- else if eq $status "want" -}}
+              {{- $progress = 0 -}}
+            {{- end -}}
+
+            {{- /* 书脊厚度：优先按字数，缺失时用序号做稳定抖动 */ -}}
+            {{- $words := int (default 0 $book.words) -}}
+            {{- $width := add 26 (mod (mul $i 7) 14) -}}
+            {{- if gt $words 0 -}}
+              {{- $width = add 24 (div (mod $words 320) 20) -}}
+            {{- end -}}
+            {{- $height := add 168 (mod (mul $i 11) 18) -}}
+            {{- $tilt := sub (mod (mul $i 5) 5) 2 -}}
+
+            {{- $light := default "" $book.dominant_color -}}
+            {{- $dark := default $light $book.dominant_color_dark -}}
+
+            {{- $style := printf "--book-w:%dpx;--book-h:%dpx;--book-tilt:%ddeg;--book-progress:%d%%;" $width $height $tilt $progress -}}
+            {{- with $light -}}
+              {{- $style = printf "%s--book-color:%s;" $style . -}}
+            {{- end -}}
+            {{- with $dark -}}
+              {{- $style = printf "%s--book-color-dark:%s;" $style . -}}
+            {{- end -}}
+
+            {{- $authorSuffix := "" -}}
+            {{- with $book.author -}}
+              {{- $authorSuffix = printf "，%s" . -}}
+            {{- end -}}
+            {{- $statusLabel := default "想读" (index $statusLabels $status) -}}
+            {{- $label := printf "%s%s，%s" $book.title $authorSuffix $statusLabel -}}
+
+            <a class="book-spine"
+               href="{{ default "#" $book.link }}"
+               {{- if $book.link }} target="_blank" rel="noopener"{{ end }}
+               data-book-index="{{ $i }}"
+               data-status="{{ $status }}"
+               aria-label="{{ $label }}"
+               style="{{ $style | safeCSS }}">
+              {{- if gt $progress 0 }}
+              <span class="book-spine-progress" aria-hidden="true"></span>
+              {{- end }}
+              <span class="book-spine-title">{{ $book.title }}</span>
+              {{- if eq $status "finished" }}
+              <span class="book-spine-mark" aria-hidden="true"></span>
+              {{- end }}
+            </a>
+          {{- end -}}
+        </div>
+        <div class="books-shelf-plank" aria-hidden="true"></div>
+      </div>
+    </section>
+  {{- end -}}
+</div>
+
+<script id="books-data" type="application/json">{{ $books | jsonify | safeJS }}</script>
+{{ partial "jingzhe/script.html" (dict "path" "js/pages/books.js" "defer" true) }}
+{{- end -}}
+{{ end }}

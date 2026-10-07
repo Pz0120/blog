@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="{{ site.Language.Locale | default "zh-CN" }}">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  
+  <title>{{ block "title" . }}{{ .Title }} - {{ site.Title }}{{ end }}</title>
+  {{ if in (slice "newlaodao" "newsuibi") .Layout }}
+    <meta name="robots" content="noindex, nofollow, noarchive">
+  {{ end }}
+  
+  <meta name="mobile-web-app-capable" content="yes">
+  {{ with site.Params.brand.manifestPath }}<link rel="manifest" href="{{ . }}">{{ end }}
+  {{ with site.Params.brand.favicon }}<link rel="icon" href="{{ . }}">{{ end }}
+  
+  <meta name="theme-color" content="#fffdfa" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1c1c1e" media="(prefers-color-scheme: dark)">
+  
+  {{ with site.Params.brand.appleTouchIcon }}<link rel="apple-touch-icon" href="{{ . }}">{{ end }}
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="{{ site.Params.brand.webAppTitle | default site.Title }}">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  
+  {{ with site.Home.OutputFormats.Get "RSS" }}
+    <link rel="alternate" type="application/rss+xml" href="{{ .Permalink }}" title="{{ site.Title }}">
+  {{ end }}
+  <link rel="canonical" href="{{ .Permalink }}" />
+
+  {{ block "meta_tags" . }}
+    {{ partial "seo.html" . }}
+  {{ end }}
+
+  {{ $options := dict "targetPath" "css/style.css" "sourceMap" (cond hugo.IsServer "linked" "none") }}
+  {{ $style := resources.Get "css/style.css" | resources.ExecuteAsTemplate "css/style.css" . | css.Build $options }}
+  {{ if not hugo.IsServer }}
+    {{ $style = $style | minify | fingerprint }}
+  {{ end }}
+  <link rel="stylesheet" href="{{ $style.RelPermalink }}">
+
+  {{ $themeJs := resources.Get "js/theme.js" }}
+  {{ if not hugo.IsServer }}
+    {{ $themeJs = $themeJs | minify | fingerprint }}
+  {{ end }}
+  <script src="{{ $themeJs.RelPermalink }}"></script>
+</head>
+
+<body class='page {{ block "body_classes" . }}{{ end }}'>
+  
+  {{ partial "mobile.html" . }}
+  
+  <div id="wrapper" class="wrapper">
+    {{ partial "header.html" . }}   
+    
+    {{ block "main" . }}{{ end }}
+  </div>
+
+  {{ partialCached "footer.html" . .Kind .Type .Layout }}
+  
+  {{ partial "jingzhe/bundle-script.html" (dict
+    "paths" (slice
+      "js/navigation/motion.js"
+      "js/navigation/lightbox.js"
+      "js/navigation/desktop.js"
+      "js/navigation/mobile.js"
+    )
+    "targetPath" "js/site.js"
+    "defer" true
+  ) }}
+
+  {{ block "footer_js" . }}{{ end }} 
+</body>
+</html>

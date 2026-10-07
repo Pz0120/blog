@@ -1,0 +1,121 @@
+{{- $sources := slice -}}
+{{- range site.RegularPages -}}
+  {{- $sourceType := "" -}}
+  {{- if eq .Section "zouguo" -}}
+    {{- $sourceType = "zouguo" -}}
+  {{- else if and (eq .Type "laodao") (in (default (slice) .Params.laodaotags) "走过") -}}
+    {{- $sourceType = "laodao" -}}
+  {{- else if and (eq .Section "posts") (in (default (slice) .Params.tags) "走过") -}}
+    {{- $sourceType = "post" -}}
+  {{- end -}}
+  {{- if $sourceType -}}
+    {{- $sources = $sources | append (dict "page" . "sourceType" $sourceType) -}}
+  {{- end -}}
+{{- end -}}
+
+{{- $items := slice -}}
+{{- range $source := $sources -}}
+  {{- $page := $source.page -}}
+  {{- $sourceType := $source.sourceType -}}
+  {{- $block := index $page.Params "zouguo" -}}
+  {{- if not (and $block (isset $block "occurred_at") (isset $block "place")) -}}
+    {{- errorf "走过聚合失败：%s 是 %s 来源，但缺少 zouguo.occurred_at 或 zouguo.place" $page.File.Path $sourceType -}}
+  {{- end -}}
+  {{- $placeParams := index $block "place" -}}
+  {{- if not (and
+    (isset $placeParams "id")
+    (isset $placeParams "name")
+    (isset $placeParams "longitude")
+    (isset $placeParams "latitude")
+    (isset $placeParams "precision")
+    (isset $placeParams "country_code")) -}}
+    {{- errorf "走过聚合失败：%s 的 zouguo.place 缺少必填地点字段" $page.File.Path -}}
+  {{- end -}}
+
+  {{- $occurredAt := (time.AsTime (index $block "occurred_at")).Format "2006-01-02T15:04:05Z07:00" -}}
+  {{- $publishedAt := $page.Date.Format "2006-01-02T15:04:05Z07:00" -}}
+  {{- $sourceID := $page.File.ContentBaseName -}}
+  {{- if eq $sourceType "post" -}}
+    {{- $candidateID := default $page.File.ContentBaseName $page.Slug -}}
+    {{- if gt (len (findRE `^[a-z0-9][a-z0-9._:-]{0,199}$` $candidateID)) 0 -}}
+      {{- $sourceID = $candidateID -}}
+    {{- else -}}
+      {{- $sourceID = $page.File.UniqueID -}}
+    {{- end -}}
+  {{- end -}}
+
+  {{- $summary := "" -}}
+  {{- if ne $sourceType "post" -}}
+    {{- $rawWithoutImages := replaceRE `!\[[^\]]*\]\([^)]*\)` "" $page.RawContent -}}
+    {{- $summary = strings.TrimSpace (plainify (markdownify $rawWithoutImages)) -}}
+  {{- end -}}
+
+  {{- $images := slice -}}
+  {{- $imageURLs := slice -}}
+  {{- if and (eq $sourceType "post") $page.Params.image -}}
+    {{- $coverURL := printf "%v" $page.Params.image -}}
+    {{- $images = $images | append (partial "zouguo/image.html" (dict "src" $coverURL "alt" $page.Title)) -}}
+    {{- $imageURLs = $imageURLs | append $coverURL -}}
+  {{- end -}}
+  {{- range findRESubmatch `!\[([^\]]*)\]\(([^)[:space:]]+)(?:[[:space:]]+"[^"]*")?\)` $page.RawContent -}}
+    {{- $imageURL := index . 2 -}}
+    {{- if not (in $imageURLs $imageURL) -}}
+      {{- $images = $images | append (partial "zouguo/image.html" (dict "src" $imageURL "alt" (index . 1))) -}}
+      {{- $imageURLs = $imageURLs | append $imageURL -}}
+    {{- end -}}
+  {{- end -}}
+
+  {{- $adminCodes := partial "zouguo/admin-codes.html" $placeParams -}}
+  {{- $place := dict
+    "id" (index $placeParams "id")
+    "name" (index $placeParams "name")
+    "longitude" (index $placeParams "longitude")
+    "latitude" (index $placeParams "latitude")
+    "precision" (index $placeParams "precision")
+    "privacy" (default "public" (index $placeParams "privacy"))
+    "country" (default "" (index $placeParams "country"))
+    "countryCode" $adminCodes.countryCode
+    "region" (default "" (index $placeParams "region"))
+    "regionCode" $adminCodes.regionCode
+    "locality" (default "" (index $placeParams "locality"))
+    "localityCode" $adminCodes.localityCode
+    "provider" (default "" (index $placeParams "provider"))
+    "providerId" (default "" (index $placeParams "provider_id"))
+  -}}
+  {{- $sourcePath := printf "content/%s" $page.File.Path -}}
+  {{- $sourceInfo := dict
+    "type" $sourceType
+    "id" $sourceID
+    "url" $page.RelPermalink
+    "path" $sourcePath
+  -}}
+  {{- $capabilities := dict
+    "canEdit" true
+    "canDelete" (eq $sourceType "zouguo")
+    "canDetach" (ne $sourceType "zouguo")
+    "canOpenSource" (ne $sourceType "zouguo")
+  -}}
+  {{- $title := index $placeParams "name" -}}
+  {{- if eq $sourceType "post" -}}
+    {{- $title = $page.Title -}}
+  {{- else if and (eq $sourceType "zouguo") $page.Title -}}
+    {{- $title = $page.Title -}}
+  {{- end -}}
+  {{- $items = $items | append (dict
+    "id" (printf "%s:%s" $sourceType $sourceID)
+    "source" $sourceInfo
+    "title" $title
+    "summary" $summary
+    "occurredAt" $occurredAt
+    "publishedAt" $publishedAt
+    "place" $place
+    "images" $images
+    "capabilities" $capabilities
+  ) -}}
+{{- end -}}
+{{- $items = sort $items "occurredAt" "desc" -}}
+{{- return (dict
+  "schemaVersion" 2
+  "generatedAt" (now.Format "2006-01-02T15:04:05Z07:00")
+  "items" $items
+) -}}

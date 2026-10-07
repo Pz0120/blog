@@ -1,0 +1,326 @@
+@charset "UTF-8";
+.page-laodao-admin .site-footer-wrapper,
+.page-laodao-admin .floating-header {
+  display: none;
+}
+
+#loginOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--background-body-color);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-login-input {
+  padding: 16px;
+  width: 240px;
+  margin-bottom: 15px;
+  border-radius: 99px;
+  outline: none;
+  background: var(--theme-admin-input-background);
+  border: 1px solid var(--theme-admin-input-border);
+  color: var(--theme-admin-input-color);
+}
+
+.admin-login-btn {
+  padding: 10px 24px;
+  cursor: pointer;
+  background: var(--text-highlight-color);
+  color: var(--palette-background-card-light);
+  border: none;
+  border-radius: 20px;
+  font-weight: bold;
+}
+
+/* 2. 沉浸式编辑区 (全居中，视觉聚焦) */
+.admin-immersive-wrapper {
+  width: 100%;
+  margin: 0 auto;
+  padding: 15px;
+  box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+  .admin-immersive-wrapper {
+    margin: 20vh auto 10vh;
+    padding: 0;
+    box-sizing: border-box;
+  }
+}
+
+/* 3. 发布框通用组件 */
+.admin-publish-card:has(.admin-textarea:placeholder-shown) #submitBtn, .admin-publish-card:has(.admin-textarea:placeholder-shown) #saveDraftBtn {
+  opacity: 0.2;
+  cursor: not-allowed;
+}
+
+.admin-textarea {
+  width: 100%;
+  min-height: 100px;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: inherit;
+  resize: none !important;
+  overflow-y: hidden;
+  padding: 0;
+  scroll-margin-top: 60px;
+}
+
+.page-laodao-admin .admin-publish-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 99;
+  background: var(--background-body-color);
+  padding-top: 15px;
+  padding-bottom: 10px;
+  margin-top: -15px;
+}
+
+@media (min-width: 768px) {
+  .page-laodao-admin .admin-publish-footer {
+    position: static;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-top: 0;
+    background: var(--theme-admin-footer-desktop-background);
+  }
+}
+
+.page-laodao-admin #editorWrap {
+  margin-top: 15px;
+}
+
+/* 4. 左侧 SVG 工具栏组 */
+.admin-toolbar {
+  display: flex;
+  gap: 25px;
+  align-items: center;
+}
+
+.admin-toolbar .admin-icon-link,
+.admin-toolbar .admin-icon-emoji {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .admin-toolbar .admin-icon-link,
+.admin-toolbar .admin-icon-emoji {
+    display: flex;
+  }
+}
+
+.admin-icon-btn {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  color: var(--text-info-color);
+  transition: color 0.2s, opacity 0.2s;
+  opacity: var(--theme-editor-muted-opacity);
+}
+
+.admin-icon-btn:hover {
+  color: var(--text-highlight-color);
+  opacity: 1;
+}
+
+.admin-icon-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+@media (min-width: 768px) {
+  .admin-icon-btn svg {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+/* 5. 右侧发布与操作区 */
+.admin-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1rem;
+}
+
+.admin-btn {
+  background: transparent;
+  color: var(--text-highlight-color);
+  border: none;
+  font-size: 1.05em;
+  cursor: pointer;
+}
+
+.admin-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.admin-btn-cancel {
+  color: var(--text-info-color);
+  font-weight: normal;
+}
+
+/* 6. 列表区样式 */
+.admin-laodao-list {
+  display: none;
+  margin-top: 20px;
+}
+
+#recentList {
+  display: grid;
+  gap: 15px;
+}
+
+.admin-recent-card {
+  cursor: pointer;
+  transition: border-color 0.2s;
+  border: 1px solid transparent;
+  padding: 0;
+  background-color: transparent;
+  opacity: 0.6;
+}
+
+.admin-recent-card:hover {
+  opacity: 1;
+}
+
+.admin-recent-content {
+  margin: 10px 0;
+  font-size: 1rem;
+  opacity: 0.8;
+  line-height: 1;
+}
+
+/* 7. 表情浮窗 */
+.emoji-selector {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(32px, 1fr));
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.emoji-item {
+  padding: 4px;
+  font-size: 24px;
+  line-height: 0.8;
+  cursor: pointer;
+  text-align: center;
+  transition: transform 0.1s;
+}
+
+.emoji-item:hover {
+  opacity: 0.8;
+  transform: scale(1.1);
+}
+
+/* 标签补全 */
+.tag-selector-dropdown {
+  display: none;
+  /* 默认隐藏，JS 触发时会强行改为 grid */
+  grid-template-columns: repeat(4, 1fr);
+  /* 强制一行 4 列 */
+  gap: 4px;
+  /* 标签的横纵间距 */
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 16px;
+  max-width: 420px;
+  background: var(--background-card-color);
+  border: 1px solid var(--background-card-border-color);
+}
+
+/* 单个标签样式 */
+.tag-selector-dropdown .tag-item {
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--text-info-color);
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: all 0.2s ease;
+}
+
+/* 鼠标悬浮和键盘选中状态的高亮 */
+.tag-selector-dropdown .tag-item:hover,
+.tag-selector-dropdown .tag-item.active {
+  background: var(--background-body-color);
+  border-radius: 8px;
+  color: var(--text-content-color) !important;
+}
+
+/* ==================================
+   后台唠叨定位小标签 (Admin Location)
+================================== */
+.admin-location-chip {
+  margin: 10px 0 0 0;
+  padding: 8px 10px;
+  border-radius: 99px;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  width: fit-content;
+  transition: background 0.2s;
+  background: var(--background-card-color);
+  color: var(--text-content-color);
+  border: 1px solid var(--background-card-border-color);
+  /* 嵌套文字样式 */
+}
+
+.admin-location-chip svg {
+  cursor: pointer;
+}
+
+.admin-location-chip .admin-location-text {
+  margin: 0 6px;
+  cursor: pointer;
+}
+
+.admin-location-chip .admin-location-text:hover {
+  text-decoration: underline;
+}
+
+.draft-item-wrapper {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  line-height: 1;
+}
+
+.draft-delete-btn {
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--text-info-color);
+  opacity: 0.8;
+}
+
+.draft-delete-btn:hover {
+  color: #ef4444;
+}
+
+/* 右侧内容区 */
+.draft-content-text {
+  cursor: pointer;
+  color: var(--text-info-color);
+}
+
+.draft-content-text:hover {
+  opacity: 0.6;
+}

@@ -1,0 +1,19 @@
+<footer class="site-footer-wrapper">
+  <div class="site-footer-inner">
+    
+    <p class="footer-info">
+      &copy; {{ now.Year }} <a href="{{ site.Home.RelPermalink }}">{{ site.Params.brand.footerName | default site.Title }}</a>.
+      由 <a href="https://gohugo.io/" target="_blank" rel="noopener"> Hugo </a> 提供强力驱动,
+      <a href="https://www.cloudflare.com/" target="_blank" rel="noopener">Cloudflare</a> 提供存储/加速, ChatGPT & Gemini 疯狂手搓代码支持.
+    </p>
+
+    {{ with site.Params.brand.footerTagline }}<p class="footer-info">{{ . }}</p>{{ end }}
+
+  </div>
+</footer>
+
+{{ $postType := default "posts" site.Params.contentTypeName }}
+{{ $needsImageViewer := or .IsHome (eq .Type "laodao") (and .IsPage (eq .Type $postType)) (eq .Layout "about") }}
+{{ if $needsImageViewer }}
+<script src="/js/view-image.min.js"></script>
+{{ end }}

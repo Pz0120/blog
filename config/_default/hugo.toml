@@ -1,0 +1,60 @@
+baseURL = "https://peixy.xyz/"
+locale = "zh-CN"
+title = "我的博客"
+theme = "jingzhe_v3"
+
+enableRobotsTXT = true
+hasCJKLanguage = true
+cleanDestinationDir = true
+
+[module]
+  [module.hugoVersion]
+    extended = true
+    min = "0.158.0"
+
+[permalinks]
+  posts = "/:slug/"
+
+[markup]
+  [markup.highlight]
+    guessSyntax = true
+    lineNos = false
+    noClasses = false
+
+  [markup.goldmark.renderer]
+    unsafe = true
+
+[taxonomies]
+  category = "categories"
+  tag = "tags"
+  laodaotag = "laodaotags"
+
+[related]
+  includeNewer = true
+  threshold = 80
+  toLower = true
+
+  [[related.indices]]
+    name = "laodaotags"
+    weight = 100
+
+  [[related.indices]]
+    name = "date"
+    pattern = "200601"
+    weight = 10
+
+[outputs]
+  home = ["HTML", "RSS"]
+  section = ["HTML", "RSS", "JSON"]
+
+[menu]
+  [[menu.main]]
+    identifier = "home"
+    name = "首页"
+    url = "/"
+    weight = 1
+  [[menu.main]]
+    identifier = "posts"
+    name = "随笔"
+    url = "/posts/"
+    weight = 2

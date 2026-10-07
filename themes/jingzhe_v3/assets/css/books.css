@@ -1,0 +1,436 @@
+@charset "UTF-8";
+
+/* ==========================================================================
+   书架 / books.css
+   书脊式书架：每个「书单」是一层隔板，书脊竖排，颜色取自各自封面主色调。
+   依赖 tokens.css 里的语义令牌与深色模式约定（html[data-theme="dark"]）。
+   ========================================================================== */
+
+.books-shelves {
+  --books-spine-gap: 3px;
+  --books-shelf-gap: 46px;
+  --books-plank-height: 12px;
+  --books-lift: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--books-shelf-gap);
+  margin: 28px 0 40px;
+}
+
+.books-empty {
+  color: var(--text-info-color);
+  font-size: 0.9rem;
+  line-height: 1.8;
+}
+
+.books-empty code {
+  font-family: "GeistMono", var(--font-stack-system);
+  font-size: 0.86em;
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  background-color: var(--theme-subtle-fill);
+}
+
+/* --- 书单标题 ---------------------------------------------------------- */
+
+.books-shelf-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 10px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--text-info-color);
+  text-transform: none;
+}
+
+.books-shelf-title::after {
+  content: "";
+  flex: 1 1 auto;
+  height: 1px;
+  background-color: currentColor;
+  opacity: 0.22;
+}
+
+.books-shelf-count {
+  font-family: "GeistMono", var(--font-stack-system);
+  font-size: 0.7rem;
+  opacity: 0.7;
+  order: 3;
+}
+
+/* 标题后的分隔线要让出计数的位置 */
+.books-shelf-title::after {
+  order: 2;
+}
+
+.books-shelf-name {
+  order: 1;
+}
+
+/* --- 书架与隔板 -------------------------------------------------------- */
+
+.books-shelf {
+  position: relative;
+  padding-bottom: var(--books-plank-height);
+}
+
+/* 横向滑动：一排书脊就是一格真实书架，长了就横向扫。
+   padding-top 留出书脊被「抽出来」的高度，避免 hover 位移被裁掉。 */
+.books-shelf-row {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-end;
+  gap: var(--books-spine-gap);
+  padding: var(--books-lift) 4px 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--text-info-color) transparent;
+}
+
+.books-shelf-row::-webkit-scrollbar {
+  height: 6px;
+}
+
+.books-shelf-row::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.books-shelf-row::-webkit-scrollbar-thumb {
+  background-color: var(--text-info-color);
+  border-radius: 3px;
+  opacity: 0.5;
+}
+
+/* 隔板 */
+.books-shelf-plank {
+  position: absolute;
+  left: -6px;
+  right: -6px;
+  bottom: 0;
+  height: var(--books-plank-height);
+  border-radius: 2px;
+  background-image: linear-gradient(
+    180deg,
+    #b08a63 0%,
+    #8a6746 38%,
+    #63482f 100%
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    0 6px 14px -6px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+
+html[data-theme="dark"] .books-shelf-plank {
+  background-image: linear-gradient(
+    180deg,
+    #6b5137 0%,
+    #4a3724 45%,
+    #2e2116 100%
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.09),
+    0 6px 16px -6px rgba(0, 0, 0, 0.75);
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) .books-shelf-plank {
+    background-image: linear-gradient(
+      180deg,
+      #6b5137 0%,
+      #4a3724 45%,
+      #2e2116 100%
+    );
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.09),
+      0 6px 16px -6px rgba(0, 0, 0, 0.75);
+  }
+}
+
+/* --- 书脊 -------------------------------------------------------------- */
+
+.book-spine {
+  position: relative;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  width: var(--book-w, 30px);
+  height: var(--book-h, 176px);
+  padding: 9px 0 12px;
+  border-radius: 2px 2px 1px 1px;
+  overflow: hidden;
+  text-decoration: none;
+  color: #fff;
+  background-color: var(--book-color, #9a9a9a);
+  /* 书脊的圆柱感：左侧高光、右侧压暗，中间过渡 */
+  background-image: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.26) 0%,
+    rgba(255, 255, 255, 0.16) 11%,
+    rgba(255, 255, 255, 0.03) 44%,
+    rgba(0, 0, 0, 0.1) 86%,
+    rgba(0, 0, 0, 0.34) 100%
+  );
+  box-shadow:
+    inset 0 -7px 9px -7px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 2px 4px -1px rgba(0, 0, 0, 0.35);
+  transform: translateY(0) rotate(var(--book-tilt, 0deg));
+  transform-origin: bottom center;
+  transition:
+    transform 0.24s cubic-bezier(0.2, 0.7, 0.3, 1),
+    box-shadow 0.24s ease,
+    filter 0.24s ease;
+}
+
+.book-spine:hover,
+.book-spine:focus-visible {
+  transform: translateY(calc(-1 * var(--books-lift))) rotate(0deg);
+  box-shadow:
+    inset 0 -7px 9px -7px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 14px 22px -10px rgba(0, 0, 0, 0.6);
+  z-index: 3;
+}
+
+.book-spine:focus-visible {
+  outline: 2px solid var(--text-highlight-color);
+  outline-offset: 2px;
+}
+
+/* 深色模式：用封面调色板的深色端，略微提亮以保证与页面背景可分辨 */
+html[data-theme="dark"] .book-spine {
+  background-color: var(--book-color-dark, var(--book-color, #6a6a6a));
+  background-color: color-mix(
+    in srgb,
+    var(--book-color-dark, var(--book-color, #6a6a6a)) 84%,
+    white
+  );
+  box-shadow:
+    inset 0 -7px 9px -7px rgba(0, 0, 0, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 2px 5px -1px rgba(0, 0, 0, 0.6);
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) .book-spine {
+    background-color: var(--book-color-dark, var(--book-color, #6a6a6a));
+    background-color: color-mix(
+      in srgb,
+      var(--book-color-dark, var(--book-color, #6a6a6a)) 84%,
+      white
+    );
+    box-shadow:
+      inset 0 -7px 9px -7px rgba(0, 0, 0, 0.7),
+      inset 0 1px 0 rgba(255, 255, 255, 0.14),
+      0 2px 5px -1px rgba(0, 0, 0, 0.6);
+  }
+}
+
+/* 竖排书名 */
+.book-spine-title {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  max-height: 100%;
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.16;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.34);
+}
+
+/* 阅读进度：从书脊底部向上填充 */
+.book-spine-progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--book-progress, 0%);
+  background-image: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.04),
+    rgba(255, 255, 255, 0.22)
+  );
+  border-top: 1px solid rgba(255, 255, 255, 0.28);
+  pointer-events: none;
+}
+
+/* 读完：书脊底部一个小横杠作为标记 */
+.book-spine-mark {
+  position: absolute;
+  left: 22%;
+  right: 22%;
+  bottom: 5px;
+  height: 2px;
+  border-radius: 1px;
+  background-color: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.5);
+  pointer-events: none;
+}
+
+/* 状态差异 */
+.book-spine[data-status="want"] {
+  filter: saturate(0.45) brightness(1.06);
+  opacity: 0.62;
+}
+
+.book-spine[data-status="want"]:hover,
+.book-spine[data-status="want"]:focus-visible {
+  filter: none;
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .book-spine {
+    transition: none;
+  }
+
+  .book-spine:hover,
+  .book-spine:focus-visible {
+    transform: none;
+    box-shadow:
+      inset 0 -7px 9px -7px rgba(0, 0, 0, 0.55),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3),
+      0 6px 14px -8px rgba(0, 0, 0, 0.55);
+  }
+}
+
+/* --- 悬停详情卡 -------------------------------------------------------- */
+
+.book-detail-card {
+  position: fixed;
+  z-index: 60;
+  width: min(320px, calc(100vw - 24px));
+  padding: 14px;
+  border-radius: 14px;
+  background-color: var(--theme-glass-background);
+  -webkit-backdrop-filter: var(--theme-glass-filter);
+  backdrop-filter: var(--theme-glass-filter);
+  border: 1px solid var(--theme-glass-border);
+  box-shadow: var(--theme-glass-box-shadow-wide);
+  opacity: 0;
+  transform: translateY(4px);
+  transition:
+    opacity 0.16s ease,
+    transform 0.16s ease;
+  pointer-events: none;
+}
+
+.book-detail-card[hidden] {
+  display: none;
+}
+
+.book-detail-card.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.book-detail-inner {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.book-detail-cover {
+  flex: 0 0 56px;
+  border-radius: 4px;
+  overflow: hidden;
+  background-color: var(--theme-subtle-fill);
+  box-shadow: 0 2px 6px -2px rgba(0, 0, 0, 0.4);
+}
+
+.book-detail-cover img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.book-detail-body {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.book-detail-title {
+  margin: 0 0 4px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--text-content-color);
+}
+
+.book-detail-meta {
+  margin: 0 0 6px;
+  font-size: 0.74rem;
+  line-height: 1.5;
+  color: var(--text-info-color);
+}
+
+.book-detail-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 6px;
+  font-size: 0.72rem;
+  font-family: "GeistMono", var(--font-stack-system);
+  color: var(--text-info-color);
+}
+
+.book-detail-status {
+  color: var(--text-highlight-color);
+  font-weight: 600;
+}
+
+.book-detail-stars {
+  margin: 0 0 6px;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  color: #fbc02d;
+}
+
+html[data-theme="dark"] .book-detail-stars {
+  color: #ad9258;
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) .book-detail-stars {
+    color: #ad9258;
+  }
+}
+
+.book-detail-comment {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--text-content-color);
+  text-align: justify;
+}
+
+/* --- 窄屏 -------------------------------------------------------------- */
+
+@media (max-width: 640px) {
+  .books-shelves {
+    --books-shelf-gap: 34px;
+    --books-lift: 8px;
+  }
+
+  .book-spine-title {
+    font-size: 11px;
+  }
+
+  .books-shelf-title {
+    font-size: 0.76rem;
+  }
+
+  /* 触屏上没有 hover，详情卡改为跟随点击时的位置即可 */
+  .book-detail-card {
+    width: min(300px, calc(100vw - 20px));
+  }
+}
