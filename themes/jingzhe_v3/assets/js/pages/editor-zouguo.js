@@ -44,6 +44,25 @@
     el.classList.toggle('is-error', Boolean(isError));
   }
 
+  /* 发布结果单独显示在按钮旁边，并滚动到可见处。
+     手机上这个表单很长，写在顶部的提示滚下来按按钮之后根本看不到 —— 
+     用户看到的就是「点了没反应」。这是实打实踩过的坑。 */
+  function setSubmitStatus(text, kind) {
+    var el = $('submitStatus');
+    if (!el) return;
+    el.textContent = text || '';
+    el.classList.remove('is-error', 'is-ok');
+    if (kind === 'error') el.classList.add('is-error');
+    if (kind === 'ok') el.classList.add('is-ok');
+    if (text) {
+      try {
+        el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      } catch (_error) {
+        el.scrollIntoView();
+      }
+    }
+  }
+
   /* datetime-local 的 "2026-10-08T14:30" → 带本机时区的 ISO
      服务端要求结尾是 Z 或 ±HH:MM，否则 validTimestamp 直接拒 */
   function isoWithOffset(localValue) {
@@ -687,11 +706,18 @@
   /* ------------------------------------------------------------------ */
 
   async function publishZouguo() {
-    if (!pickedPlace) { setStatus('先选一个地点', true); return; }
+    if (!pickedPlace) {
+      setSubmitStatus('还没选地点 —— 先在上面搜一个，或点「在地图上选点」', 'error');
+      setStatus('先选一个地点', true);
+      var step = $('pickedStep');
+      var query = $('placeQuery');
+      (query || step || { scrollIntoView: function () {} }).scrollIntoView({ block: 'center' });
+      return;
+    }
 
     var occurredLocal = ($('occurredAt') || {}).value || '';
     var occurredAt = isoWithOffset(occurredLocal || nowLocalValue());
-    if (!occurredAt) { setStatus('时间格式不对', true); return; }
+    if (!occurredAt) { setSubmitStatus('时间格式不对', 'error'); return; }
 
     var title = (($('title') || {}).value || '').trim();
     var content = (($('content') || {}).value || '').trim();
@@ -711,7 +737,7 @@
 
     var button = $('submitBtn');
     if (button) { button.disabled = true; button.textContent = '记录中…'; }
-    setStatus('正在保存…');
+    setSubmitStatus('正在保存…');
 
     try {
       var response = await secureFetch(CONFIG.workerUrl + '/api/app/zouguo/publish', {
@@ -723,12 +749,14 @@
       if (!response.ok) throw new Error(payload.error || ('HTTP ' + response.status));
 
       CORE.removeDraft(DRAFT_KEY);
-      setStatus('✓ 已记录：' + (payload.path || '') + '　正在跳转…');
+      setSubmitStatus('✓ 已记录，正在跳转到走过地图…', 'ok');
+      setStatus('✓ 已记录：' + (payload.path || ''));
       imageUrls = [];
       renderImages();
       setTimeout(function () { window.location.href = '/zouguo/'; }, 1200);
     } catch (error) {
       var message = error && error.message === '401' ? '口令错误或已失效，请重新验证' : (error.message || error);
+      setSubmitStatus('保存失败：' + message, 'error');
       setStatus('保存失败：' + message, true);
       if (button) { button.disabled = false; button.textContent = '记下走过'; }
     }

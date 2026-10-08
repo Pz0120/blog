@@ -294,12 +294,36 @@
   cursor: pointer;
 }
 
+/* 发布结果：贴在按钮上方，必须有足够对比度，不能只是淡灰 */
+.zg-submit-status {
+  margin: 0;
+  padding: 0 18px;
+  min-height: 1.2em;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--text-content-color);
+}
+
+.zg-submit-status:empty {
+  display: none;
+}
+
+.zg-submit-status.is-error {
+  color: var(--theme-status-error);
+  font-weight: 500;
+}
+
+.zg-submit-status.is-ok {
+  color: var(--text-highlight-color);
+  font-weight: 500;
+}
+
 /* --- 提交区 ------------------------------------------------------------ */
 
 .zg-submit-row {
   display: flex;
   gap: 10px;
-  padding: 16px 18px 22px;
+  padding: 12px 18px 22px;
 }
 
 .zg-submit-row .admin-btn {

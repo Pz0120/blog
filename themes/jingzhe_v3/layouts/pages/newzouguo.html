@@ -93,6 +93,10 @@
 
     </form>
 
+    {{/* 发布结果必须显示在按钮旁边 —— 之前只写在上方的 #placeStatus，
+         手机上滚下来按按钮后提示在屏幕外，看着就像「点了没反应」。 */}}
+    <p id="submitStatus" class="zg-submit-status" role="status" aria-live="polite"></p>
+
     <div class="zg-submit-row">
       <button type="button" class="admin-btn admin-btn-cancel" onclick="saveLocalDraft()">暂存</button>
       <button type="button" id="submitBtn" class="admin-btn" onclick="publishZouguo()">记下走过</button>
