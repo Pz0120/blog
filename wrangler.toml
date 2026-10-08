@@ -1,0 +1,17 @@
+# Cloudflare Workers Builds 配置
+#
+# 「连接到仓库」那个对话框会用这里的设置：
+#   构建命令 里跑 Hugo 生成 public/，然后 部署命令 `npx wrangler deploy` 读这个文件。
+#
+# name 必须与已存在的 Worker 一致，否则会另建一个新的 Worker（站点不会切过去）。
+name = "peixy-site"
+
+compatibility_date = "2026-08-14"
+
+# 纯静态资源：wrangler 会把 public/ 上传成 Worker 的静态资源。
+# 不写 main，wrangler 会生成一个只负责发静态文件的默认入口。
+[assets]
+directory = "./public"
+# 与之前用 API 部署时保持一致的寻址与 404 行为
+html_handling = "auto-trailing-slash"
+not_found_handling = "404-page"
