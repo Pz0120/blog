@@ -1,1 +1,54 @@
-[]
+[
+  {
+    "id": "35517450",
+    "type": "tv",
+    "title": "克拉克森的农场 第二季",
+    "year": "2023",
+    "rating": 0,
+    "comment": "",
+    "link": "https://movie.douban.com/subject/35517450/",
+    "create_time": "2026-10-05 12:12:54",
+    "color_scheme": {
+      "_base_color": [
+        0.13260340632603404,
+        0.5982532751091704,
+        0.8980392156862745
+      ],
+      "_avg_color": [
+        0.16203703703703706,
+        0.3302752293577982,
+        0.42745098039215684
+      ],
+      "primary_color_light": "72642e",
+      "primary_color_dark": "4c431e",
+      "secondary_color": "f9f8f4",
+      "is_dark": true
+    }
+  },
+  {
+    "id": "34839005",
+    "type": "tv",
+    "title": "克拉克森的农场 第一季",
+    "year": "2021",
+    "rating": 0,
+    "comment": "",
+    "link": "https://movie.douban.com/subject/34839005/",
+    "create_time": "2026-10-05 12:12:40",
+    "color_scheme": {
+      "_base_color": [
+        0.09444444444444448,
+        0.22222222222222227,
+        0.5294117647058824
+      ],
+      "_avg_color": [
+        0.11858974358974357,
+        0.35616438356164376,
+        0.5725490196078431
+      ],
+      "primary_color_light": "a59580",
+      "primary_color_dark": "7f7363",
+      "secondary_color": "f9f7f4",
+      "is_dark": true
+    }
+  }
+]

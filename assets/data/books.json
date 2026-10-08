@@ -1,1 +1,62 @@
-[]
+[
+  {
+    "id": "834464",
+    "title": "活着",
+    "author": "余华",
+    "cover": "https://cdn.weread.qq.com/weread/cover/1/yuewen_834464/t6_yuewen_8344641758521403.jpg",
+    "category": "精品小说-年代小说",
+    "shelf": "书架",
+    "status": "want",
+    "progress": 0,
+    "readingTime": 27,
+    "link": "https://weread.qq.com/book-detail?type=1&v=33332bf05cbba0333b1efb4",
+    "secret": 0,
+    "dominant_color": "#296578",
+    "dominant_color_dark": "#15353e"
+  },
+  {
+    "id": "3300220277",
+    "title": "红星照耀中国",
+    "author": "[美]埃德加·斯诺",
+    "cover": "https://cdn.weread.qq.com/weread/cover/26/cpplatform_3eubemdchb5tgqjfy3fqxm/t6_cpplatform_3eubemdchb5tgqjfy3fqxm1784803662.jpg",
+    "category": "文学-纪实文学",
+    "shelf": "书架",
+    "status": "want",
+    "progress": 0,
+    "readingTime": 46,
+    "link": "https://weread.qq.com/book-detail?type=1&v=50232100813abbc8bg0176cd",
+    "secret": 0,
+    "dominant_color": "#b41d22",
+    "dominant_color_dark": "#5e0f12"
+  },
+  {
+    "id": "44026191",
+    "title": "纳瓦尔宝典",
+    "author": "埃里克·乔根森",
+    "cover": "https://cdn.weread.qq.com/weread/cover/89/YueWen_44026191/t6_YueWen_44026191.jpg",
+    "category": "经济理财-理财",
+    "shelf": "书架",
+    "status": "reading",
+    "progress": 34,
+    "readingTime": 627,
+    "link": "https://weread.qq.com/book-detail?type=1&v=e1e32b00729fc94fe1e824d",
+    "secret": 0,
+    "dominant_color": "#b1935f",
+    "dominant_color_dark": "#5c4c31"
+  },
+  {
+    "id": "25615385",
+    "title": "被讨厌的勇气：“自我启发之父”阿德勒的哲学课",
+    "author": "岸见一郎 古贺史健",
+    "cover": "https://wfqqreader-1252317822.image.myqcloud.com/cover/385/25615385/t6_25615385.jpg",
+    "category": "心理-积极心理学",
+    "shelf": "书架",
+    "status": "reading",
+    "progress": 2,
+    "readingTime": 126,
+    "link": "https://weread.qq.com/book-detail?type=1&v=8b9329607186dc198b9bdab",
+    "secret": 0,
+    "dominant_color": "#167bc0",
+    "dominant_color_dark": "#0b4064"
+  }
+]
