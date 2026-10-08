@@ -1,6 +1,6 @@
 baseURL = "https://peixy.xyz/"
 locale = "zh-CN"
-title = "我的博客"
+title = "peixy"
 theme = "jingzhe_v3"
 
 enableRobotsTXT = true

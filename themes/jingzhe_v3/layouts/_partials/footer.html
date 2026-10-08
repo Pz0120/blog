@@ -2,12 +2,8 @@
   <div class="site-footer-inner">
     
     <p class="footer-info">
-      &copy; {{ now.Year }} <a href="{{ site.Home.RelPermalink }}">{{ site.Params.brand.footerName | default site.Title }}</a>.
-      由 <a href="https://gohugo.io/" target="_blank" rel="noopener"> Hugo </a> 提供强力驱动,
-      <a href="https://www.cloudflare.com/" target="_blank" rel="noopener">Cloudflare</a> 提供存储/加速, ChatGPT & Gemini 疯狂手搓代码支持.
+      &copy; {{ now.Year }} <a href="{{ site.Home.RelPermalink }}">{{ site.Params.brand.footerName | default site.Title }}</a>{{ with site.Params.brand.footerTagline }} · {{ . }}{{ end }}
     </p>
-
-    {{ with site.Params.brand.footerTagline }}<p class="footer-info">{{ . }}</p>{{ end }}
 
   </div>
 </footer>

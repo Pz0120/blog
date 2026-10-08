@@ -33,7 +33,7 @@
       data-map-style-dark="{{ $mapboxDarkStyle }}"
       data-boundary-url="{{ $boundaryResource.RelPermalink }}">
   <header class="zouguo-hero">
-    <p class="zouguo-hero-line">自己很少出远门，毕业来到杭州以后，就没在什么城市常驻过，走过的地方寥寥无几。</p>
+    {{ with .Params.description }}<p class="zouguo-hero-line">{{ . }}</p>{{ end }}
     <div class="zouguo-hero-meta" aria-label="走过统计">
       <span><strong>{{ len $items }}</strong> 次走过</span>
       <span><strong>{{ $cityScratch.Get "photos" | default 0 }}</strong> 张碎片</span>

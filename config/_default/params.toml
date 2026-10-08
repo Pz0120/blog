@@ -9,14 +9,14 @@ RSSNoContent = false
   email = ""
 
 [brand]
-  name = "我的博客"
-  footerName = "我的博客"
-  footerTagline = ""
+  name = "peixy"
+  footerName = "peixy"
+  footerTagline = "记录工作、生活，和一些没用的折腾"
   favicon = ""
   appleTouchIcon = ""
   avatar = ""
   avatarAlt = ""
-  webAppTitle = "我的博客"
+  webAppTitle = "peixy"
   manifestPath = "/manifest.webmanifest"
 
 [repository]
