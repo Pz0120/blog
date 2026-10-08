@@ -1,0 +1,326 @@
+@charset "UTF-8";
+
+/* ==========================================================================
+   走过编辑器 / newzouguo.css
+   复用 newlaodao.css 里的全局类（.admin-login-input / .admin-btn /
+   .admin-publish-card / .admin-textarea / .admin-actions / .admin-immersive-wrapper），
+   这里只写「地点选择」相关的部分。
+   ========================================================================== */
+
+.page-zouguo-admin .admin-immersive-wrapper {
+  padding-bottom: 60px;
+}
+
+.zg-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 18px 18px 4px;
+}
+
+.zg-step {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.zg-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-content-color);
+  letter-spacing: 0.02em;
+}
+
+.zg-hint {
+  font-weight: 400;
+  color: var(--text-info-color);
+  font-size: 0.76rem;
+}
+
+/* --- 输入控件（跟站点一致的圆角与描边）--------------------------------- */
+
+.zg-input,
+.zg-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid var(--theme-glass-border);
+  border-radius: 10px;
+  background-color: var(--theme-subtle-fill);
+  color: var(--text-content-color);
+  font-family: inherit;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.zg-textarea {
+  resize: vertical;
+  min-height: 92px;
+}
+
+.zg-input:focus,
+.zg-textarea:focus {
+  outline: 2px solid var(--text-highlight-color);
+  outline-offset: 1px;
+}
+
+.zg-input::placeholder,
+.zg-textarea::placeholder {
+  color: var(--text-info-color);
+}
+
+/* --- 地点搜索 ---------------------------------------------------------- */
+
+.zg-search-row {
+  display: flex;
+  gap: 8px;
+}
+
+.zg-search-row .zg-input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.zg-search-btn {
+  flex: 0 0 auto;
+  padding: 10px 18px;
+  border: 1px solid var(--theme-glass-border);
+  border-radius: 10px;
+  background-color: var(--theme-subtle-fill);
+  color: var(--text-content-color);
+  font-family: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.zg-search-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.zg-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: var(--text-info-color);
+}
+
+.zg-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.zg-link-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-highlight-color);
+  font-family: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.zg-link-btn:disabled {
+  color: var(--text-info-color);
+  cursor: default;
+  text-decoration: none;
+}
+
+.zg-status {
+  margin: 0;
+  min-height: 1.2em;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--text-info-color);
+}
+
+.zg-status.is-error {
+  color: var(--theme-status-error);
+}
+
+/* --- 搜索结果列表 ------------------------------------------------------ */
+
+.zg-results {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--theme-glass-border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.zg-results[hidden] {
+  display: none;
+}
+
+.zg-result {
+  display: block;
+  width: 100%;
+  padding: 11px 13px;
+  border: 0;
+  border-bottom: 1px solid var(--theme-glass-border);
+  background: none;
+  color: var(--text-content-color);
+  font-family: inherit;
+  font-size: 0.86rem;
+  line-height: 1.45;
+  text-align: left;
+  cursor: pointer;
+}
+
+.zg-result:last-child {
+  border-bottom: 0;
+}
+
+.zg-result:hover,
+.zg-result:focus-visible {
+  background-color: var(--theme-subtle-fill);
+}
+
+.zg-result-name {
+  display: block;
+  font-weight: 600;
+}
+
+.zg-result-addr {
+  display: block;
+  margin-top: 2px;
+  color: var(--text-info-color);
+  font-size: 0.76rem;
+}
+
+/* --- 已选地点 ---------------------------------------------------------- */
+
+.zg-picked {
+  border: 1px solid var(--theme-glass-border);
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: var(--theme-subtle-fill);
+}
+
+.zg-map-preview {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 2 / 1;
+  object-fit: cover;
+  background-color: var(--theme-subtle-fill);
+}
+
+.zg-picked-body {
+  padding: 11px 13px 13px;
+}
+
+.zg-picked-name {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--text-content-color);
+}
+
+.zg-picked-meta {
+  margin: 3px 0 7px;
+  font-family: "GeistMono", var(--font-stack-system);
+  font-size: 0.72rem;
+  color: var(--text-info-color);
+}
+
+/* --- 图片 -------------------------------------------------------------- */
+
+.zg-upload {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
+  padding: 8px 14px;
+  border: 1px dashed var(--theme-glass-border);
+  border-radius: 10px;
+  background-color: var(--theme-subtle-fill);
+  color: var(--text-info-color);
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.zg-images {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: 8px;
+}
+
+.zg-images:empty {
+  display: none;
+}
+
+.zg-image {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: var(--theme-subtle-fill);
+}
+
+.zg-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.zg-image-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 14px;
+  line-height: 22px;
+  cursor: pointer;
+}
+
+/* --- 提交区 ------------------------------------------------------------ */
+
+.zg-submit-row {
+  display: flex;
+  gap: 10px;
+  padding: 16px 18px 22px;
+}
+
+.zg-submit-row .admin-btn {
+  flex: 1 1 auto;
+}
+
+.zg-credit {
+  margin: 0;
+  padding: 0 18px 24px;
+  font-size: 0.7rem;
+  color: var(--text-info-color);
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .zg-form {
+    padding: 14px 14px 2px;
+    gap: 17px;
+  }
+
+  .zg-submit-row {
+    padding: 14px 14px 20px;
+  }
+}

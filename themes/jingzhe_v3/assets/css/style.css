@@ -21,6 +21,7 @@
 {{ if partial "jingzhe/feature-enabled.html" "publisher" }}
 @import "newlaodao.css";
 @import "newsuibi.css";
+@import "newzouguo.css";
 {{ end }}
 @import "syntax.css";
 {{ if partial "jingzhe/feature-enabled.html" "social" }}

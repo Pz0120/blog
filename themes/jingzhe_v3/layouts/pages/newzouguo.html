@@ -1,0 +1,105 @@
+{{ define "body_classes" }}page-zouguo-admin{{ end }}
+{{ define "main" }}
+
+{{ partial "jingzhe/script.html" (dict "path" "js/pages/jingzhe-message.js" "defer" true) }}
+{{ partial "jingzhe/script.html" (dict "path" "js/pages/editor-core.js" "defer" true) }}
+
+<div id="loginOverlay" style="display: none;">
+    <input type="password" id="adminTokenInput" class="admin-login-input" placeholder="输入密钥">
+    <button class="admin-login-btn" onclick="verifyToken()">验证</button>
+</div>
+
+<div id="adminPanel" style="display: none;" class="admin-immersive-wrapper">
+  <div class="admin-publish-card">
+    <form id="zgForm" class="zg-form" novalidate>
+
+      {{/* ---- 地点 ---- */}}
+      <section class="zg-step">
+        <label class="zg-label" for="placeQuery">去哪儿了</label>
+        <div class="zg-search-row">
+          <input type="search" id="placeQuery" class="zg-input" placeholder="输入地名，如 西湖"
+                 autocomplete="off" enterkeyhint="search">
+          <button type="button" id="searchBtn" class="zg-search-btn" onclick="searchPlace()">搜索</button>
+        </div>
+
+        <div class="zg-tools">
+          <label class="zg-checkbox">
+            <input type="checkbox" id="searchGlobal"> 搜索全球
+          </label>
+          <button type="button" id="locateBtn" class="zg-link-btn" onclick="useCurrentLocation()">
+            用当前位置
+          </button>
+        </div>
+
+        <p id="placeStatus" class="zg-status" role="status"></p>
+        <ul id="placeResults" class="zg-results" hidden></ul>
+      </section>
+
+      {{/* ---- 已选地点 ---- */}}
+      <section class="zg-step" id="pickedStep" hidden>
+        <div class="zg-picked">
+          <img id="pickedMap" class="zg-map-preview" alt="地点预览" loading="lazy" decoding="async">
+          <div class="zg-picked-body">
+            <p id="pickedName" class="zg-picked-name"></p>
+            <p id="pickedMeta" class="zg-picked-meta"></p>
+            <button type="button" class="zg-link-btn" onclick="clearPlace()">换一个</button>
+          </div>
+        </div>
+      </section>
+
+      {{/* ---- 时间 ---- */}}
+      <section class="zg-step">
+        <label class="zg-label" for="occurredAt">什么时候</label>
+        <input type="datetime-local" id="occurredAt" class="zg-input">
+      </section>
+
+      {{/* ---- 标题 ---- */}}
+      <section class="zg-step">
+        <label class="zg-label" for="title">标题 <span class="zg-hint">留空就用地点名</span></label>
+        <input type="text" id="title" class="zg-input" placeholder=" " autocomplete="off">
+      </section>
+
+      {{/* ---- 正文 ---- */}}
+      <section class="zg-step">
+        <label class="zg-label" for="content">说点什么 <span class="zg-hint">可留空</span></label>
+        <textarea id="content" class="zg-textarea" placeholder=" " rows="4"></textarea>
+      </section>
+
+      {{/* ---- 照片 ---- */}}
+      <section class="zg-step">
+        <label class="zg-label">照片 <span class="zg-hint">可选，会上传到图床</span></label>
+        <label class="zg-upload">
+          选择图片
+          <input type="file" id="imageInput" accept="image/*" multiple style="display: none;">
+        </label>
+        <div id="imageList" class="zg-images"></div>
+      </section>
+
+    </form>
+
+    <div class="zg-submit-row">
+      <button type="button" class="admin-btn admin-btn-cancel" onclick="saveLocalDraft()">暂存</button>
+      <button type="button" id="submitBtn" class="admin-btn" onclick="publishZouguo()">记下走过</button>
+    </div>
+
+    <p class="zg-credit">地名搜索与地图由 Mapbox 提供 · 地理数据 © OpenStreetMap</p>
+  </div>
+</div>
+
+{{- $publisherConfig := site.Params.services.publisher | default dict -}}
+{{- $repositoryConfig := site.Params.repository | default dict -}}
+{{- $mapConfig := site.Params.services.exercise | default dict -}}
+{{- $mapboxToken := or (index $mapConfig "mapboxtoken") (os.Getenv "MAPBOX_TOKEN") -}}
+<script>
+    window.JINGZHE_EDITOR_CONFIG = {
+        workerUrl: {{ default "" (index $publisherConfig "workerurl") | jsonify | safeJS }},
+        draftUrl: {{ default "" (index $publisherConfig "drafturl") | jsonify | safeJS }},
+        owner: {{ default "" (index $repositoryConfig "owner") | jsonify | safeJS }},
+        repo: {{ default "" (index $repositoryConfig "name") | jsonify | safeJS }},
+        branch: {{ default "main" (index $repositoryConfig "branch") | jsonify | safeJS }},
+        upyunDomain: {{ default "" (index $publisherConfig "imagebaseurl") | jsonify | safeJS }},
+        mapboxToken: {{ default "" $mapboxToken | jsonify | safeJS }}
+    };
+</script>
+{{ partial "jingzhe/script.html" (dict "path" "js/pages/editor-zouguo.js" "defer" true) }}
+{{ end }}
