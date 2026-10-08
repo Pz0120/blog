@@ -75,10 +75,13 @@ RSSNoContent = false
   # 实测 npmmirror 平均 383ms，staticfile/bootcdn 要 14s，jsDelivr 只有 1/2 成功。
   mapboxCssUrl = "https://registry.npmmirror.com/mapbox-gl/3.26.0/files/dist/mapbox-gl.css"
   mapboxJsUrl = "https://registry.npmmirror.com/mapbox-gl/3.26.0/files/dist/mapbox-gl.js"
-  # 注意：必须用「公开样式」或你自己的样式。
-  # 主题原本硬编码了作者 koobai 的私有样式，别人的 token 访问会 404。
-  mapboxLightStyle = "mapbox://styles/mapbox/light-v11"
-  mapboxDarkStyle = "mapbox://styles/mapbox/dark-v11"
+  # 自己账户里的样式（照 koobai.com/zouguo 的配色复刻）。
+  # 主题自己画行政边界，样式只负责底图与文字，所以这两个样式是
+  # 「Mapbox Standard 基底 + 定制配色」：浅色偏暖米纸（边界砖红），
+  # 深色偏冷深青（自带地名关掉，改用 5 个自定义标签图层）。
+  # 改配色在 Mapbox Studio 里改，刷新即生效，不用重新部署。
+  mapboxLightStyle = "mapbox://styles/pz0120/cmuz0iuiu001d01r9bc4pgsn0"
+  mapboxDarkStyle = "mapbox://styles/pz0120/cmuz0n5yd001e01r9feiadj2p"
   mapCenter = [0.0, 0.0]
   posterFilePrefix = "JingzheExercise"
 
