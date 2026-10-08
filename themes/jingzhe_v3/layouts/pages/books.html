@@ -6,16 +6,23 @@
   {{- $books = . | transform.Unmarshal -}}
 {{- end -}}
 
-{{- $intro := .Params.intro | default "读过的、在读的、想读的，都排在下面。" -}}
-<div class="pagetitle">{{ $intro }}</div>
+{{- /* 页面导语：只在 content/pages/书架.md 里设了 intro 时才显示。
+       这里刻意不给 default —— 否则清空 markdown 也删不掉这段文字。
+       想加回来就在 markdown 的 front matter 里写 intro: '……' */ -}}
+{{- with .Params.intro }}
+<div class="pagetitle">{{ . }}</div>
+{{- end }}
 
 {{- if not $books -}}
   <p class="books-empty">
-    书架还是空的。把微信读书导出的数据写进 <code>assets/data/books.json</code> 就会显示。
+    书架还是空的。运行 <code>python sync_books.py</code> 从微信读书同步，
+    或手动写进 <code>assets/data/books.json</code>。
   </p>
 {{- else -}}
 
-{{- /* 收集书单名，保持数据中首次出现的顺序，避免地图式随机排序 */ -}}
+{{- $statusLabels := dict "finished" "读完" "reading" "在读" "want" "想读" -}}
+
+{{- /* 书单：只有多于一个书单时才显示筛选条，单个书单时整条不渲染 */ -}}
 {{- $shelfNames := slice -}}
 {{- range $books -}}
   {{- $name := default "未归类" .shelf -}}
@@ -24,83 +31,83 @@
   {{- end -}}
 {{- end -}}
 
-{{- $statusLabels := dict "finished" "读完" "reading" "在读" "want" "想读" -}}
+<div class="books-wall" id="books-app">
 
-<div class="books-shelves" id="books-app">
-  {{- range $shelfNames -}}
-    {{- $shelfName := . -}}
-    {{- $items := slice -}}
-    {{- range $books -}}
-      {{- if eq (default "未归类" .shelf) $shelfName -}}
-        {{- $items = $items | append . -}}
+  {{- if gt (len $shelfNames) 1 }}
+  <div class="books-filter" role="group" aria-label="按书单筛选">
+    <button type="button" class="books-chip is-active" data-shelf-filter="*" aria-pressed="true">
+      全部<span class="books-chip-n">{{ len $books }}</span>
+    </button>
+    {{- range $shelfNames -}}
+      {{- $shelfName := . -}}
+      {{- $count := 0 -}}
+      {{- range $books -}}
+        {{- if eq (default "未归类" .shelf) $shelfName -}}
+          {{- $count = add $count 1 -}}
+        {{- end -}}
+      {{- end }}
+    <button type="button" class="books-chip" data-shelf-filter="{{ $shelfName }}" aria-pressed="false">
+      {{ $shelfName }}<span class="books-chip-n">{{ $count }}</span>
+    </button>
+    {{- end }}
+  </div>
+  {{- end }}
+
+  <ul class="books-grid">
+    {{- range $i, $book := $books -}}
+      {{- $status := default "want" $book.status -}}
+      {{- $progress := int (default 0 $book.progress) -}}
+      {{- if eq $status "finished" -}}
+        {{- $progress = 100 -}}
+      {{- else if eq $status "want" -}}
+        {{- $progress = 0 -}}
       {{- end -}}
+
+      {{- $shelfName := default "未归类" $book.shelf -}}
+      {{- $light := default "" $book.dominant_color -}}
+
+      {{- $authorSuffix := "" -}}
+      {{- with $book.author -}}
+        {{- $authorSuffix = printf "，%s" . -}}
+      {{- end -}}
+      {{- $statusLabel := default "想读" (index $statusLabels $status) -}}
+      {{- $label := printf "《%s》%s，%s" $book.title $authorSuffix $statusLabel -}}
+
+      {{- /* 进度条的填充色用封面提取出来的主色；没有就退回强调色 */ -}}
+      {{- $barStyle := printf "--book-progress:%d%%;" $progress -}}
+      {{- with $light -}}
+        {{- $barStyle = printf "%s--book-color:%s;" $barStyle . -}}
+      {{- end -}}
+
+    <li class="books-grid-item" data-shelf="{{ $shelfName }}">
+      <a class="book-tile"
+         href="{{ default "#" $book.link }}"
+         {{- if $book.link }} target="_blank" rel="noopener"{{ end }}
+         data-book-index="{{ $i }}"
+         data-status="{{ $status }}"
+         aria-label="{{ $label }}">
+        <span class="book-tile-cover">
+          {{- with $book.cover }}
+          <img src="{{ . }}" alt="" loading="lazy" decoding="async" width="250" height="355">
+          {{- end }}
+          {{- if gt $progress 0 }}
+          <span class="book-tile-bar" style="{{ $barStyle | safeCSS }}" aria-hidden="true"></span>
+          {{- end }}
+        </span>
+        {{- /* 书名 / 作者 / 状态 各占一行，三行都单行截断。
+             即使没有作者也渲染空行，保证每个格子的行数一致，网格不参差。 */ -}}
+        <span class="book-tile-title" title="{{ $book.title }}">{{ $book.title }}</span>
+        <span class="book-tile-author"{{ with $book.author }} title="{{ . }}"{{ end }}>{{ default "" $book.author }}</span>
+        <span class="book-tile-meta">
+          {{- $statusLabel -}}
+          {{- if and (eq $status "reading") (gt $progress 0) }} {{ $progress }}%{{ end -}}
+        </span>
+      </a>
+    </li>
     {{- end -}}
+  </ul>
 
-    <section class="books-shelf-group">
-      <h2 class="books-shelf-title">
-        <span class="books-shelf-name">{{ $shelfName }}</span>
-        <span class="books-shelf-count">{{ len $items }}</span>
-      </h2>
-
-      <div class="books-shelf">
-        <div class="books-shelf-row">
-          {{- range $i, $book := $items -}}
-            {{- $status := default "want" $book.status -}}
-            {{- $progress := int (default 0 $book.progress) -}}
-            {{- if eq $status "finished" -}}
-              {{- $progress = 100 -}}
-            {{- else if eq $status "want" -}}
-              {{- $progress = 0 -}}
-            {{- end -}}
-
-            {{- /* 书脊厚度：优先按字数，缺失时用序号做稳定抖动 */ -}}
-            {{- $words := int (default 0 $book.words) -}}
-            {{- $width := add 26 (mod (mul $i 7) 14) -}}
-            {{- if gt $words 0 -}}
-              {{- $width = add 24 (div (mod $words 320) 20) -}}
-            {{- end -}}
-            {{- $height := add 168 (mod (mul $i 11) 18) -}}
-            {{- $tilt := sub (mod (mul $i 5) 5) 2 -}}
-
-            {{- $light := default "" $book.dominant_color -}}
-            {{- $dark := default $light $book.dominant_color_dark -}}
-
-            {{- $style := printf "--book-w:%dpx;--book-h:%dpx;--book-tilt:%ddeg;--book-progress:%d%%;" $width $height $tilt $progress -}}
-            {{- with $light -}}
-              {{- $style = printf "%s--book-color:%s;" $style . -}}
-            {{- end -}}
-            {{- with $dark -}}
-              {{- $style = printf "%s--book-color-dark:%s;" $style . -}}
-            {{- end -}}
-
-            {{- $authorSuffix := "" -}}
-            {{- with $book.author -}}
-              {{- $authorSuffix = printf "，%s" . -}}
-            {{- end -}}
-            {{- $statusLabel := default "想读" (index $statusLabels $status) -}}
-            {{- $label := printf "%s%s，%s" $book.title $authorSuffix $statusLabel -}}
-
-            <a class="book-spine"
-               href="{{ default "#" $book.link }}"
-               {{- if $book.link }} target="_blank" rel="noopener"{{ end }}
-               data-book-index="{{ $i }}"
-               data-status="{{ $status }}"
-               aria-label="{{ $label }}"
-               style="{{ $style | safeCSS }}">
-              {{- if gt $progress 0 }}
-              <span class="book-spine-progress" aria-hidden="true"></span>
-              {{- end }}
-              <span class="book-spine-title">{{ $book.title }}</span>
-              {{- if eq $status "finished" }}
-              <span class="book-spine-mark" aria-hidden="true"></span>
-              {{- end }}
-            </a>
-          {{- end -}}
-        </div>
-        <div class="books-shelf-plank" aria-hidden="true"></div>
-      </div>
-    </section>
-  {{- end -}}
+  <p class="books-filter-empty" hidden>这个书单下还没有书。</p>
 </div>
 
 <script id="books-data" type="application/json">{{ $books | jsonify | safeJS }}</script>

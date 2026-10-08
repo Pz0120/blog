@@ -63,12 +63,21 @@ RSSNoContent = false
   quality = 75
 
 [services.exercise]
+  # 不要在仓库里写 token：GitHub 推送保护会把它当密钥直接拒绝推送（GH013），
+  # 公开仓库里的令牌也会被爬虫扫走。
+  # token 存在站点根目录的 .mapbox-token（已 gitignore），
+  # 由 publish.ps1 读出来注入环境变量 MAPBOX_TOKEN，模板再取。
   mapboxToken = ""
   mapboxApiOrigin = "https://api.mapbox.com"
   mapboxEventsOrigin = "https://events.mapbox.com"
-  mapboxCssUrl = "https://lib.baomitu.com/mapbox-gl/3.2.0/mapbox-gl.css"
-  mapboxJsUrl = "https://lib.baomitu.com/mapbox-gl/3.2.0/mapbox-gl.js"
-  mapboxLightStyle = "mapbox://styles/mapbox/streets-v12"
+  # 库文件必须走国内镜像：官方源的 mapbox-gl.js 有 1.85MB，
+  # 在国内网络下 0/2 通不过（而 40KB 的 css 能过），地图会直接白屏。
+  # 实测 npmmirror 平均 383ms，staticfile/bootcdn 要 14s，jsDelivr 只有 1/2 成功。
+  mapboxCssUrl = "https://registry.npmmirror.com/mapbox-gl/3.26.0/files/dist/mapbox-gl.css"
+  mapboxJsUrl = "https://registry.npmmirror.com/mapbox-gl/3.26.0/files/dist/mapbox-gl.js"
+  # 注意：必须用「公开样式」或你自己的样式。
+  # 主题原本硬编码了作者 koobai 的私有样式，别人的 token 访问会 404。
+  mapboxLightStyle = "mapbox://styles/mapbox/light-v11"
   mapboxDarkStyle = "mapbox://styles/mapbox/dark-v11"
   mapCenter = [0.0, 0.0]
   posterFilePrefix = "JingzheExercise"

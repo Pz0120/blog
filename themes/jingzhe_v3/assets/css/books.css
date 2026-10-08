@@ -1,309 +1,274 @@
 @charset "UTF-8";
 
 /* ==========================================================================
-   书架 / books.css
-   书脊式书架：每个「书单」是一层隔板，书脊竖排，颜色取自各自封面主色调。
-   依赖 tokens.css 里的语义令牌与深色模式约定（html[data-theme="dark"]）。
+   书架 / books.css —— 纯封面墙
+
+   设计约束（改这个文件前请先读）：
+   · 配色只能用站点自己的语义令牌。这里曾经写死过一套暖木色
+     (#b08a63 → #63482f)，是全站唯一的第二个色系，看起来很外挂 —— 已移除。
+   · 站点只有一个强调色：--text-highlight-color（深玫瑰 / 淡紫）。
+   · 圆角规则（全页统一，别散落新值）：封面 6px · 详情卡 14px · 筛选胶囊 pill
+   · 阴影按背景色偏暖，不要用纯黑（浅色模式背景是暖白 #f2f0eb）。
+   · 封面高宽比按真实数据定：微信读书封面 250px 宽、高宽比 1.33–1.48，
+     故取 1/1.42，并让裁切只发生在底部（object-position: center top），
+     永远不切书名。
    ========================================================================== */
 
-.books-shelves {
-  --books-spine-gap: 3px;
-  --books-shelf-gap: 46px;
-  --books-plank-height: 12px;
-  --books-lift: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: var(--books-shelf-gap);
-  margin: 28px 0 40px;
+.books-wall {
+  --books-gap-x: 14px;
+  --books-gap-y: 24px;
+  --books-cover-min: 120px;
+  margin: 30px 0 40px;
 }
+
+/* --- 空状态 ------------------------------------------------------------ */
 
 .books-empty {
   color: var(--text-info-color);
   font-size: 0.9rem;
-  line-height: 1.8;
+  line-height: 1.9;
 }
 
 .books-empty code {
   font-family: "GeistMono", var(--font-stack-system);
   font-size: 0.86em;
-  padding: 0.15em 0.4em;
-  border-radius: 4px;
+  padding: 0.15em 0.42em;
+  border-radius: 5px;
   background-color: var(--theme-subtle-fill);
+  color: var(--text-content-color);
 }
 
-/* --- 书单标题 ---------------------------------------------------------- */
+/* --- 书单筛选（只有一个书单时整条不渲染）-------------------------------- */
 
-.books-shelf-title {
+.books-filter {
   display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 22px;
+}
+
+.books-chip {
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
-  margin: 0 0 10px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
+  gap: 6px;
+  padding: 5px 12px;
+  border: 1px solid var(--theme-glass-border);
+  border-radius: 999px;
+  background-color: var(--theme-subtle-fill);
   color: var(--text-info-color);
-  text-transform: none;
-}
-
-.books-shelf-title::after {
-  content: "";
-  flex: 1 1 auto;
-  height: 1px;
-  background-color: currentColor;
-  opacity: 0.22;
-}
-
-.books-shelf-count {
-  font-family: "GeistMono", var(--font-stack-system);
-  font-size: 0.7rem;
-  opacity: 0.7;
-  order: 3;
-}
-
-/* 标题后的分隔线要让出计数的位置 */
-.books-shelf-title::after {
-  order: 2;
-}
-
-.books-shelf-name {
-  order: 1;
-}
-
-/* --- 书架与隔板 -------------------------------------------------------- */
-
-.books-shelf {
-  position: relative;
-  padding-bottom: var(--books-plank-height);
-}
-
-/* 横向滑动：一排书脊就是一格真实书架，长了就横向扫。
-   padding-top 留出书脊被「抽出来」的高度，避免 hover 位移被裁掉。 */
-.books-shelf-row {
-  display: flex;
-  flex-wrap: nowrap;
-  align-items: flex-end;
-  gap: var(--books-spine-gap);
-  padding: var(--books-lift) 4px 0;
-  overflow-x: auto;
-  overflow-y: hidden;
-  overscroll-behavior-x: contain;
-  scrollbar-width: thin;
-  scrollbar-color: var(--text-info-color) transparent;
-}
-
-.books-shelf-row::-webkit-scrollbar {
-  height: 6px;
-}
-
-.books-shelf-row::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.books-shelf-row::-webkit-scrollbar-thumb {
-  background-color: var(--text-info-color);
-  border-radius: 3px;
-  opacity: 0.5;
-}
-
-/* 隔板 */
-.books-shelf-plank {
-  position: absolute;
-  left: -6px;
-  right: -6px;
-  bottom: 0;
-  height: var(--books-plank-height);
-  border-radius: 2px;
-  background-image: linear-gradient(
-    180deg,
-    #b08a63 0%,
-    #8a6746 38%,
-    #63482f 100%
-  );
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.35),
-    0 6px 14px -6px rgba(0, 0, 0, 0.5);
-  pointer-events: none;
-}
-
-html[data-theme="dark"] .books-shelf-plank {
-  background-image: linear-gradient(
-    180deg,
-    #6b5137 0%,
-    #4a3724 45%,
-    #2e2116 100%
-  );
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.09),
-    0 6px 16px -6px rgba(0, 0, 0, 0.75);
-}
-
-@media (prefers-color-scheme: dark) {
-  html:not([data-theme="light"]) .books-shelf-plank {
-    background-image: linear-gradient(
-      180deg,
-      #6b5137 0%,
-      #4a3724 45%,
-      #2e2116 100%
-    );
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.09),
-      0 6px 16px -6px rgba(0, 0, 0, 0.75);
-  }
-}
-
-/* --- 书脊 -------------------------------------------------------------- */
-
-.book-spine {
-  position: relative;
-  flex: 0 0 auto;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  width: var(--book-w, 30px);
-  height: var(--book-h, 176px);
-  padding: 9px 0 12px;
-  border-radius: 2px 2px 1px 1px;
-  overflow: hidden;
-  text-decoration: none;
-  color: #fff;
-  background-color: var(--book-color, #9a9a9a);
-  /* 书脊的圆柱感：左侧高光、右侧压暗，中间过渡 */
-  background-image: linear-gradient(
-    90deg,
-    rgba(0, 0, 0, 0.26) 0%,
-    rgba(255, 255, 255, 0.16) 11%,
-    rgba(255, 255, 255, 0.03) 44%,
-    rgba(0, 0, 0, 0.1) 86%,
-    rgba(0, 0, 0, 0.34) 100%
-  );
-  box-shadow:
-    inset 0 -7px 9px -7px rgba(0, 0, 0, 0.55),
-    inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    0 2px 4px -1px rgba(0, 0, 0, 0.35);
-  transform: translateY(0) rotate(var(--book-tilt, 0deg));
-  transform-origin: bottom center;
+  font-family: inherit;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  cursor: pointer;
   transition:
-    transform 0.24s cubic-bezier(0.2, 0.7, 0.3, 1),
-    box-shadow 0.24s ease,
-    filter 0.24s ease;
+    color 0.18s ease,
+    background-color 0.18s ease,
+    border-color 0.18s ease;
 }
 
-.book-spine:hover,
-.book-spine:focus-visible {
-  transform: translateY(calc(-1 * var(--books-lift))) rotate(0deg);
-  box-shadow:
-    inset 0 -7px 9px -7px rgba(0, 0, 0, 0.55),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3),
-    0 14px 22px -10px rgba(0, 0, 0, 0.6);
-  z-index: 3;
+.books-chip:hover {
+  color: var(--text-content-color);
 }
 
-.book-spine:focus-visible {
+.books-chip.is-active {
+  color: var(--text-highlight-color);
+  border-color: color-mix(in srgb, var(--text-highlight-color) 45%, transparent);
+  background-color: color-mix(in srgb, var(--text-highlight-color) 10%, transparent);
+}
+
+.books-chip:focus-visible {
   outline: 2px solid var(--text-highlight-color);
   outline-offset: 2px;
 }
 
-/* 深色模式：用封面调色板的深色端，略微提亮以保证与页面背景可分辨 */
-html[data-theme="dark"] .book-spine {
-  background-color: var(--book-color-dark, var(--book-color, #6a6a6a));
-  background-color: color-mix(
-    in srgb,
-    var(--book-color-dark, var(--book-color, #6a6a6a)) 84%,
-    white
-  );
-  box-shadow:
-    inset 0 -7px 9px -7px rgba(0, 0, 0, 0.7),
-    inset 0 1px 0 rgba(255, 255, 255, 0.14),
-    0 2px 5px -1px rgba(0, 0, 0, 0.6);
+.books-chip-n {
+  font-family: "GeistMono", var(--font-stack-system);
+  font-size: 0.7rem;
+  opacity: 0.62;
 }
 
-@media (prefers-color-scheme: dark) {
-  html:not([data-theme="light"]) .book-spine {
-    background-color: var(--book-color-dark, var(--book-color, #6a6a6a));
-    background-color: color-mix(
-      in srgb,
-      var(--book-color-dark, var(--book-color, #6a6a6a)) 84%,
-      white
-    );
-    box-shadow:
-      inset 0 -7px 9px -7px rgba(0, 0, 0, 0.7),
-      inset 0 1px 0 rgba(255, 255, 255, 0.14),
-      0 2px 5px -1px rgba(0, 0, 0, 0.6);
-  }
+.books-filter-empty {
+  margin: 28px 0;
+  color: var(--text-info-color);
+  font-size: 0.86rem;
 }
 
-/* 竖排书名 */
-.book-spine-title {
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  max-height: 100%;
+/* --- 封面网格 ---------------------------------------------------------- */
+
+/* 封面墙要的是密度与整齐：CSS Grid 自动填充，不用手写断点。
+   条目数永远等于内容数，没有空位。 */
+.books-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--books-cover-min), 1fr));
+  gap: var(--books-gap-y) var(--books-gap-x);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.books-grid-item[hidden] {
+  display: none;
+}
+
+/* --- 单本书 ------------------------------------------------------------ */
+
+.book-tile {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.book-tile-cover {
+  position: relative;
+  display: block;
+  aspect-ratio: 1 / 1.42;
+  border-radius: 6px;
   overflow: hidden;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1.16;
-  letter-spacing: 0.03em;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.34);
+  background-color: var(--theme-subtle-fill);
+  /* 暖色投影 + 一圈极淡的内描边，让封面从暖白背景上"浮"起来 */
+  box-shadow:
+    inset 0 0 0 1px rgba(80, 62, 48, 0.07),
+    0 1px 2px rgba(80, 62, 48, 0.1),
+    0 7px 16px -9px rgba(80, 62, 48, 0.42);
+  transform: translateY(0);
+  transition:
+    transform 0.22s cubic-bezier(0.2, 0.7, 0.3, 1),
+    box-shadow 0.22s ease;
 }
 
-/* 阅读进度：从书脊底部向上填充 */
-.book-spine-progress {
+.book-tile-cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* 高宽比不一致时只裁底部，保住顶部的书名 */
+  object-position: center top;
+}
+
+/* 阅读进度：贴在封面底边，填充色来自封面提取的主色。
+   这是那套取色唯一同时也是最有意义的用途 —— 表达真实进度。 */
+.book-tile-bar {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  height: var(--book-progress, 0%);
-  background-image: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.04),
-    rgba(255, 255, 255, 0.22)
-  );
-  border-top: 1px solid rgba(255, 255, 255, 0.28);
+  height: 3px;
+  background-color: rgba(0, 0, 0, 0.36);
   pointer-events: none;
 }
 
-/* 读完：书脊底部一个小横杠作为标记 */
-.book-spine-mark {
+.book-tile-bar::after {
+  content: "";
   position: absolute;
-  left: 22%;
-  right: 22%;
-  bottom: 5px;
-  height: 2px;
-  border-radius: 1px;
-  background-color: rgba(255, 255, 255, 0.85);
-  box-shadow: 0 0 4px rgba(255, 255, 255, 0.5);
-  pointer-events: none;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: var(--book-progress, 0%);
+  background-color: var(--book-color, var(--text-highlight-color));
 }
 
-/* 状态差异 */
-.book-spine[data-status="want"] {
-  filter: saturate(0.45) brightness(1.06);
-  opacity: 0.62;
+/* 书名 / 作者 / 状态 —— 三行，每行都是单行截断、绝不换行。
+   行数固定，所以每个格子的高度一致，网格不会参差不齐。 */
+.book-tile-title {
+  display: block;
+  margin: 9px 0 0;
+  overflow: hidden;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--text-content-color);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 0.18s ease;
 }
 
-.book-spine[data-status="want"]:hover,
-.book-spine[data-status="want"]:focus-visible {
-  filter: none;
-  opacity: 1;
+.book-tile-author {
+  display: block;
+  margin: 2px 0 0;
+  overflow: hidden;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: var(--text-info-color);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .book-spine {
-    transition: none;
-  }
+.book-tile-meta {
+  display: block;
+  margin: 2px 0 0;
+  overflow: hidden;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: var(--text-info-color);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
-  .book-spine:hover,
-  .book-spine:focus-visible {
-    transform: none;
+/* 想读：不降透明度（那会读成"不可用"），只用一点点色差区分 */
+.book-tile[data-status="want"] .book-tile-title {
+  font-weight: 500;
+  color: color-mix(in srgb, var(--text-content-color) 84%, var(--text-info-color));
+}
+
+.book-tile[data-status="reading"] .book-tile-meta,
+.book-tile[data-status="finished"] .book-tile-meta {
+  color: color-mix(in srgb, var(--text-highlight-color) 72%, var(--text-info-color));
+}
+
+/* --- 交互：只在真有指针设备的场合抬升 ----------------------------------
+   触屏没有 hover，抬升与详情卡都不该出现；手机端靠下面常显的
+   书名/作者/状态 + 点按跳转微信读书，信息是完整的，不是"坏掉"的。 */
+
+.book-tile:focus-visible .book-tile-cover {
+  outline: 2px solid var(--text-highlight-color);
+  outline-offset: 3px;
+}
+
+.book-tile:active .book-tile-cover {
+  transform: scale(0.985);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .book-tile:hover .book-tile-cover,
+  .book-tile:focus-visible .book-tile-cover {
+    transform: translateY(-4px);
     box-shadow:
-      inset 0 -7px 9px -7px rgba(0, 0, 0, 0.55),
-      inset 0 1px 0 rgba(255, 255, 255, 0.3),
-      0 6px 14px -8px rgba(0, 0, 0, 0.55);
+      inset 0 0 0 1px rgba(80, 62, 48, 0.08),
+      0 2px 4px rgba(80, 62, 48, 0.12),
+      0 16px 26px -12px rgba(80, 62, 48, 0.5);
+  }
+
+  .book-tile:hover .book-tile-title,
+  .book-tile:focus-visible .book-tile-title {
+    color: var(--text-highlight-color);
   }
 }
 
-/* --- 悬停详情卡 -------------------------------------------------------- */
+/* --- 深色模式 ---------------------------------------------------------- */
+
+html[data-theme="dark"] .book-tile-cover {
+  /* 深色底上亮封面会"发光"，用白描边压一下 */
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.07),
+    0 2px 5px rgba(0, 0, 0, 0.5),
+    0 8px 18px -10px rgba(0, 0, 0, 0.8);
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) .book-tile-cover {
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.07),
+      0 2px 5px rgba(0, 0, 0, 0.5),
+      0 8px 18px -10px rgba(0, 0, 0, 0.8);
+  }
+}
+
+html[data-theme="dark"] .books-chip.is-active {
+  background-color: color-mix(in srgb, var(--text-highlight-color) 16%, transparent);
+}
+
+/* --- 悬停详情卡（由 books.js 生成）------------------------------------- */
 
 .book-detail-card {
   position: fixed;
@@ -344,7 +309,7 @@ html[data-theme="dark"] .book-spine {
   border-radius: 4px;
   overflow: hidden;
   background-color: var(--theme-subtle-fill);
-  box-shadow: 0 2px 6px -2px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 2px 6px -2px rgba(80, 62, 48, 0.4);
 }
 
 .book-detail-cover img {
@@ -413,24 +378,48 @@ html[data-theme="dark"] .book-detail-stars {
   text-align: justify;
 }
 
-/* --- 窄屏 -------------------------------------------------------------- */
+/* --- 窄屏：缩小封面与间距，列数交给 Grid ------------------------------- */
 
 @media (max-width: 640px) {
-  .books-shelves {
-    --books-shelf-gap: 34px;
-    --books-lift: 8px;
+  .books-wall {
+    --books-gap-x: 11px;
+    --books-gap-y: 20px;
+    --books-cover-min: 96px;
+    margin-top: 24px;
   }
 
-  .book-spine-title {
-    font-size: 11px;
+  .book-tile-title {
+    font-size: 0.78rem;
   }
 
-  .books-shelf-title {
-    font-size: 0.76rem;
+  .book-tile-meta {
+    font-size: 0.69rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .books-wall {
+    --books-cover-min: 88px;
+  }
+}
+
+/* --- 降低动效 ---------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .book-tile-cover,
+  .book-tile-title,
+  .books-chip {
+    transition: none;
   }
 
-  /* 触屏上没有 hover，详情卡改为跟随点击时的位置即可 */
-  .book-detail-card {
-    width: min(300px, calc(100vw - 20px));
+  .book-tile:active .book-tile-cover {
+    transform: none;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .book-tile:hover .book-tile-cover,
+    .book-tile:focus-visible .book-tile-cover {
+      transform: none;
+    }
   }
 }

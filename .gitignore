@@ -3,6 +3,12 @@
 public/
 resources/
 
+# 访问令牌：绝不提交进仓库。
+# GitHub 的推送保护会把它识别成密钥并直接拒绝推送（GH013），
+# 而且公开仓库里的令牌会被爬虫扫走、消耗你的额度。
+# Mapbox token 放在这里，构建时由 publish.ps1 注入环境变量 MAPBOX_TOKEN。
+.mapbox-token
+
 # 工作流文件需要 token 带 workflow 权限才能推送；先用网页版添加
 # 或给 token 补上 workflow 权限后，把这一行删掉即可
 .github/

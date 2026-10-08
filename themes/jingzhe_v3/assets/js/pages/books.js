@@ -1,5 +1,7 @@
-/* 书架：悬停 / 聚焦时显示详情卡。
-   数据来自页面内嵌的 <script id="books-data">，与 zouguo 页面的做法一致。 */
+/* 书架 / books.js
+   · 封面墙：鼠标悬停或键盘聚焦时弹出详情卡（只在该设备真有指针时启用）
+   · 书单筛选：只有多于一个书单时页面上才有筛选条
+   数据来自页面内嵌的 <script id="books-data">，与 zouguo 页面做法一致。 */
 (function () {
   "use strict";
 
@@ -17,14 +19,53 @@
 
   var STATUS = { finished: "读完", reading: "在读", want: "想读" };
 
+  /* ---------------------------------------------------------------------
+     书单筛选
+     单书单时模板不会渲染筛选条，这里的 chips 为空，整段自然跳过。
+     --------------------------------------------------------------------- */
+  var chips = app.querySelectorAll("[data-shelf-filter]");
+  var items = app.querySelectorAll(".books-grid-item");
+  var emptyHint = app.querySelector(".books-filter-empty");
+
+  function applyFilter(shelf) {
+    var shown = 0;
+    Array.prototype.forEach.call(items, function (item) {
+      var match = shelf === "*" || item.getAttribute("data-shelf") === shelf;
+      item.hidden = !match;
+      if (match) shown += 1;
+    });
+    if (emptyHint) emptyHint.hidden = shown !== 0;
+  }
+
+  Array.prototype.forEach.call(chips, function (chip) {
+    chip.addEventListener("click", function () {
+      Array.prototype.forEach.call(chips, function (other) {
+        var isSelf = other === chip;
+        other.classList.toggle("is-active", isSelf);
+        other.setAttribute("aria-pressed", isSelf ? "true" : "false");
+      });
+      applyFilter(chip.getAttribute("data-shelf-filter"));
+    });
+  });
+
+  /* ---------------------------------------------------------------------
+     详情卡
+     触屏没有 hover，聚焦也只会一闪而过 —— 那种设备上直接不启用，
+     不做一个"点了没反应"的假交互。手机上书名/作者/状态本来就常显，
+     点按直接跳微信读书，信息是完整的。
+     --------------------------------------------------------------------- */
+  var HOVERABLE =
+    window.matchMedia &&
+    window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+
+  var tiles = app.querySelectorAll(".book-tile");
+  if (!HOVERABLE || tiles.length === 0) return;
+
   var card = document.createElement("div");
   card.className = "book-detail-card";
   card.setAttribute("role", "tooltip");
   card.hidden = true;
   document.body.appendChild(card);
-
-  var spines = app.querySelectorAll(".book-spine");
-  if (spines.length === 0) return;
 
   var active = null;
 
@@ -70,7 +111,9 @@
     if (book.publisher) meta.push(esc(book.publisher));
 
     var facts = [];
-    facts.push('<span class="book-detail-status">' + (STATUS[status] || "想读") + "</span>");
+    facts.push(
+      '<span class="book-detail-status">' + (STATUS[status] || "想读") + "</span>"
+    );
     if (status === "reading" && progress > 0) {
       facts.push('<span class="book-detail-progress">已读 ' + progress + "%</span>");
     }
@@ -103,8 +146,9 @@
     card.innerHTML = html;
   }
 
-  function place(spine) {
-    var rect = spine.getBoundingClientRect();
+  /* 定位：把卡片尽量摆在触发项上方，并夹在视口内 */
+  function place(tile) {
+    var rect = tile.getBoundingClientRect();
     var cardRect = card.getBoundingClientRect();
     var gap = 12;
 
@@ -121,16 +165,16 @@
     card.style.top = top + "px";
   }
 
-  function show(spine) {
-    var index = Number(spine.getAttribute("data-book-index"));
+  function show(tile) {
+    var index = Number(tile.getAttribute("data-book-index"));
     var book = books[index];
     if (!book) return;
 
-    active = spine;
+    active = tile;
     render(book);
     card.hidden = false;
     /* 先显示再量尺寸，否则 getBoundingClientRect 拿到的是 0 */
-    place(spine);
+    place(tile);
     card.classList.add("is-visible");
   }
 
@@ -140,18 +184,19 @@
     card.hidden = true;
   }
 
-  Array.prototype.forEach.call(spines, function (spine) {
-    spine.addEventListener("mouseenter", function () {
-      show(spine);
+  Array.prototype.forEach.call(tiles, function (tile) {
+    tile.addEventListener("mouseenter", function () {
+      show(tile);
     });
-    spine.addEventListener("mouseleave", function () {
-      if (active === spine) hide();
+    tile.addEventListener("mouseleave", function () {
+      if (active === tile) hide();
     });
-    spine.addEventListener("focus", function () {
-      show(spine);
+    /* 键盘 Tab 到封面时也显示，focus 是可达性入口不是装饰 */
+    tile.addEventListener("focus", function () {
+      show(tile);
     });
-    spine.addEventListener("blur", function () {
-      if (active === spine) hide();
+    tile.addEventListener("blur", function () {
+      if (active === tile) hide();
     });
   });
 
@@ -159,10 +204,18 @@
     if (event.key === "Escape" && active) hide();
   });
 
+  /* 页面滚动时用 rAF 节流重新定位：每帧最多一次读写，
+     避免未节流的 scroll 回调逐帧触发布局。 */
+  var ticking = false;
   window.addEventListener(
     "scroll",
     function () {
-      if (active) place(active);
+      if (!active || ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(function () {
+        ticking = false;
+        if (active) place(active);
+      });
     },
     { passive: true }
   );

@@ -3,12 +3,21 @@
 
 {{ define "main" }}
 {{- $mapConfig := site.Params.services.exercise | default dict -}}
-{{- $mapboxApiOrigin := "https://api.mapbox.com" -}}
-{{- $mapboxCssUrl := "https://api.mapbox.com/mapbox-gl-js/v3.26.0/mapbox-gl.css" -}}
-{{- $mapboxJsUrl := "https://api.mapbox.com/mapbox-gl-js/v3.26.0/mapbox-gl.js" -}}
-{{- $mapboxToken := default "" (index $mapConfig "mapboxtoken") -}}
-{{- $mapboxLightStyle := "mapbox://styles/koobai/cmszypnux006s01py2irsdxj0" -}}
-{{- $mapboxDarkStyle := "mapbox://styles/koobai/cmt3x4dq9004m01sy0vu4cbax" -}}
+{{- $mapboxApiOrigin := default "https://api.mapbox.com" (index $mapConfig "mapboxapiorigin") -}}
+{{- /* 这三个原来硬编码成官方源，把 params.toml 里的配置当空气了。
+       1.85MB 的 mapbox-gl.js 从 api.mapbox.com 在国内 0/2 通不过 →
+       mapboxgl 未定义 → 控制器标记 is-map-error → 地图永远白屏。
+       改成读配置，默认走国内镜像。config 里换源不用动模板。 */ -}}
+{{- $mapboxCssUrl := default "https://registry.npmmirror.com/mapbox-gl/3.26.0/files/dist/mapbox-gl.css" (index $mapConfig "mapboxcssurl") -}}
+{{- $mapboxJsUrl := default "https://registry.npmmirror.com/mapbox-gl/3.26.0/files/dist/mapbox-gl.js" (index $mapConfig "mapboxjsurl") -}}
+{{- /* token 优先取 params，其次取环境变量 MAPBOX_TOKEN。
+       为什么不写进 params.toml：GitHub 推送保护会把它当密钥拒绝推送（GH013），
+       公开仓库里的 token 也会被爬虫扫走。构建时由 publish.ps1 注入。 */ -}}
+{{- $mapboxToken := or (index $mapConfig "mapboxtoken") (os.Getenv "MAPBOX_TOKEN") -}}
+{{- /* 原来这里硬编码了作者 koobai 的私有样式，别人的 token 会 404；
+       改成读 params.services.exercise，并回落到 Mapbox 公开样式。 */ -}}
+{{- $mapboxLightStyle := default "mapbox://styles/mapbox/light-v11" (index $mapConfig "mapboxlightstyle") -}}
+{{- $mapboxDarkStyle := default "mapbox://styles/mapbox/dark-v11" (index $mapConfig "mapboxdarkstyle") -}}
 {{- $feed := partial "zouguo/feed.html" . -}}
 {{- $boundaries := partial "zouguo/boundaries.html" $feed -}}
 {{- $boundaryResource := resources.FromString "data/zouguo-boundaries.json" ($boundaries | jsonify) | fingerprint "sha256" -}}
