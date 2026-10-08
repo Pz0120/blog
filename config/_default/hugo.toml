@@ -1,4 +1,4 @@
-﻿baseURL = "https://example.com"
+baseURL = "https://example.com"
 locale = "zh-CN"
 title = "MyBlog"
 theme = "jingzhe_v3"
@@ -23,6 +23,12 @@ cleanDestinationDir = true
 
   [markup.goldmark.renderer]
     unsafe = true
+
+# Hugo 默认只允许读取 HUGO_ 前缀的环境变量（安全策略）。
+# 地图令牌不进仓库，由构建时环境变量 MAPBOX_TOKEN 注入，模板用
+# os.Getenv 读取，所以这个名字必须加进白名单。
+[security.funcs]
+  getenv = ['^HUGO_', '^CI$', '^MAPBOX_TOKEN$']
 
 [taxonomies]
   category = "categories"
