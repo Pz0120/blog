@@ -80,8 +80,11 @@ RSSNoContent = false
   # 「Mapbox Standard 基底 + 定制配色」：浅色偏暖米纸（边界砖红），
   # 深色偏冷深青（自带地名关掉，改用 5 个自定义标签图层）。
   # 改配色在 Mapbox Studio 里改，刷新即生效，不用重新部署。
-  mapboxLightStyle = "mapbox://styles/pz0120/cmuz0iuiu001d01r9bc4pgsn0"
-  mapboxDarkStyle = "mapbox://styles/pz0120/cmuz0n5yd001e01r9feiadj2p"
+  # 重建过一次：把 3D 建筑/地标/树关掉了。主题用边界色块盖住底图，
+  # 3D 根本看不见却照样吃 GPU，手机上明显卡顿。
+  # （带 imports 的样式没法用 PATCH 改 config —— 返回 200 但配置不变，只能重建）
+  mapboxLightStyle = "mapbox://styles/pz0120/cmuz5v4bq00io01r78jkoejg4"
+  mapboxDarkStyle = "mapbox://styles/pz0120/cmuz5vz6b00jw01spb380fnpr"
   mapCenter = [0.0, 0.0]
   posterFilePrefix = "JingzheExercise"
 

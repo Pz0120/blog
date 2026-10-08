@@ -444,7 +444,16 @@
 
   var GL_JS = 'https://registry.npmmirror.com/mapbox-gl/3.26.0/files/dist/mapbox-gl.js';
   var GL_CSS = 'https://registry.npmmirror.com/mapbox-gl/3.26.0/files/dist/mapbox-gl.css';
-  var PICKER_STYLE = 'mapbox://styles/mapbox/outdoors-v12';
+
+  /* 选点地图用站点自己的样式，不再写死 outdoors-v12。
+     原因有二：
+       1. 观感要和走过页一致（之前编辑器显示的是旧样式，用户一眼就看出来了）
+       2. 自建样式关掉了 POI/路名/3D，比 outdoors 轻得多 —— 手机上更流畅 */
+  function pickerStyle() {
+    return isDarkMode()
+      ? (CONFIG.mapboxDarkStyle || 'mapbox://styles/mapbox/dark-v11')
+      : (CONFIG.mapboxLightStyle || 'mapbox://styles/mapbox/light-v11');
+  }
 
   var pickerMap = null;
   var pickerMarker = null;
@@ -491,7 +500,7 @@
     mapboxgl.accessToken = token;
     pickerMap = new mapboxgl.Map({
       container: 'pickerMap',
-      style: PICKER_STYLE,
+      style: pickerStyle(),
       center: pickerLngLat ? [pickerLngLat.lng, pickerLngLat.lat] : [112.8, 30.2],
       zoom: pickerLngLat ? 12 : 3.5,
       attributionControl: false

@@ -121,7 +121,10 @@
         repo: {{ default "" (index $repositoryConfig "name") | jsonify | safeJS }},
         branch: {{ default "main" (index $repositoryConfig "branch") | jsonify | safeJS }},
         upyunDomain: {{ default "" (index $publisherConfig "imagebaseurl") | jsonify | safeJS }},
-        mapboxToken: {{ default "" $mapboxToken | jsonify | safeJS }}
+        mapboxToken: {{ default "" $mapboxToken | jsonify | safeJS }},
+        {{/* 编辑器地图也要用站点自己的样式，否则和走过页观感不一致（踩过） */}}
+        mapboxLightStyle: {{ default "mapbox://styles/mapbox/light-v11" (index $mapConfig "mapboxlightstyle") | jsonify | safeJS }},
+        mapboxDarkStyle: {{ default "mapbox://styles/mapbox/dark-v11" (index $mapConfig "mapboxdarkstyle") | jsonify | safeJS }}
     };
 </script>
 {{ partial "jingzhe/script.html" (dict "path" "js/pages/editor-zouguo.js" "defer" true) }}
