@@ -1,29 +1,29 @@
-profile = "core"
-description = "工作生活的随笔与记录"
+﻿profile = "core"
+description = "在此描述你的站点"
 contentTypeName = "posts"
 addDot = false
 RSSNoContent = false
 
 [author]
-  name = "我"
+  name = "MyBlog"
   email = ""
 
 [brand]
-  name = "peixy"
-  footerName = "peixy"
-  footerTagline = "记录工作、生活，和一些没用的折腾"
+  name = "MyBlog"
+  footerName = "MyBlog"
+  footerTagline = "在这里写一句你的心情"
   favicon = ""
   appleTouchIcon = ""
   avatar = ""
   avatarAlt = ""
-  webAppTitle = "peixy"
+  webAppTitle = "MyBlog"
   manifestPath = "/manifest.webmanifest"
 
 [repository]
-  owner = "Pz0120"
-  name = "blog"
+  owner = "YOUR_GITHUB_USERNAME"
+  name = "YOUR_REPO_NAME"
   branch = "main"
-  url = "https://github.com/Pz0120/blog"
+  url = "https://github.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME"
 
 [assets]
   fontRegularUrl = ""
@@ -49,9 +49,9 @@ RSSNoContent = false
   avatarBaseUrl = "https://weavatar.com/avatar"
 
 [services.publisher]
-  workerUrl = "https://jingzhe-publisher.peixiaoyi88.workers.dev"
+  workerUrl = "https://your-publisher.your-subdomain.workers.dev"
   draftUrl = ""
-  imageBaseUrl = "https://pub-9486120c22024bfabb4ce77614684508.r2.dev"
+  imageBaseUrl = "https://pub-xxxxx.r2.dev"
 
 [services.images]
   enabled = false
@@ -63,28 +63,13 @@ RSSNoContent = false
   quality = 75
 
 [services.exercise]
-  # 不要在仓库里写 token：GitHub 推送保护会把它当密钥直接拒绝推送（GH013），
-  # 公开仓库里的令牌也会被爬虫扫走。
-  # token 存在站点根目录的 .mapbox-token（已 gitignore，本地开发用），
-  # 线上构建由 Cloudflare 的构建变量 MAPBOX_TOKEN 提供，模板再取。
   mapboxToken = ""
   mapboxApiOrigin = "https://api.mapbox.com"
   mapboxEventsOrigin = "https://events.mapbox.com"
-  # 库文件必须走国内镜像：官方源的 mapbox-gl.js 有 1.85MB，
-  # 在国内网络下 0/2 通不过（而 40KB 的 css 能过），地图会直接白屏。
-  # 实测 npmmirror 平均 383ms，staticfile/bootcdn 要 14s，jsDelivr 只有 1/2 成功。
   mapboxCssUrl = "https://registry.npmmirror.com/mapbox-gl/3.26.0/files/dist/mapbox-gl.css"
   mapboxJsUrl = "https://registry.npmmirror.com/mapbox-gl/3.26.0/files/dist/mapbox-gl.js"
-  # 自己账户里的样式（照 koobai.com/zouguo 的配色复刻）。
-  # 主题自己画行政边界，样式只负责底图与文字，所以这两个样式是
-  # 「Mapbox Standard 基底 + 定制配色」：浅色偏暖米纸（边界砖红），
-  # 深色偏冷深青（自带地名关掉，改用 5 个自定义标签图层）。
-  # 改配色在 Mapbox Studio 里改，刷新即生效，不用重新部署。
-  # 重建过一次：把 3D 建筑/地标/树关掉了。主题用边界色块盖住底图，
-  # 3D 根本看不见却照样吃 GPU，手机上明显卡顿。
-  # （带 imports 的样式没法用 PATCH 改 config —— 返回 200 但配置不变，只能重建）
-  mapboxLightStyle = "mapbox://styles/pz0120/cmuz5v4bq00io01r78jkoejg4"
-  mapboxDarkStyle = "mapbox://styles/pz0120/cmuz5vz6b00jw01spb380fnpr"
+  mapboxLightStyle = "mapbox://styles/mapbox/light-v11"
+  mapboxDarkStyle = "mapbox://styles/mapbox/dark-v11"
   mapCenter = [0.0, 0.0]
   posterFilePrefix = "JingzheExercise"
 

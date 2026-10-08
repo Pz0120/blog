@@ -1,38 +1,61 @@
-# peixy
+﻿# 个人博客模板
 
-个人博客。基于 [惊蛰](https://github.com/koobai/blog) 主题构建，部署在 Cloudflare。
+基于 [惊蛰](https://github.com/koobai/blog) 主题，部署在 Cloudflare。
 
-- 线上地址：https://peixy.xyz/
-- 架构与部署：见 [部署说明.md](部署说明.md)
-- 写作与同步：见 [内容发布指南.md](内容发布指南.md)
+## 快速部署
 
-## 本地开发
+### 前提
+- [Hugo Extended](https://gohugo.io/installation/) >= 0.158.0
+- 一个 Cloudflare 账户
+- 一个 GitHub 仓库
 
-```bash
-hugo server
+### 步骤
+
+#### 1. 创建站点
+```powershell
+git clone https://github.com/你的用户名/你的仓库.git my-blog
+cd my-blog
+powershell -ExecutionPolicy Bypass -File .\setup.ps1
 ```
 
-需要 **Hugo Extended ≥ 0.158.0** —— 主题声明了 `extended = true`，
-且样式用 `css.Build` 解析 `@import`，普通版无法构建。
+#### 2. Cloudflare 资源
+| 资源 | 怎么建 |
+|---|---|
+| R2 桶 | 建桶 → 开启公开访问 → 记下公开 URL |
+| Workers 子域 | Account Home → Workers → 记下 `.workers.dev` |
+| Mapbox 令牌 | Mapbox 控制台 → 创建公开令牌 (pk.) |
 
-本地构建若要看地图，需要注入地图令牌（文件已 gitignore，**绝不提交**）：
+#### 3. GitHub Actions 变量/密钥
+Settings → Secrets and variables → Actions：
+- 变量 `DOUBAN_ID`（可选）
+- 密钥 `CLOUDFLARE_API_TOKEN`、`MAPBOX_TOKEN`、`ADMIN_TOKEN`、`WEREAD_API_KEY`（可选）
 
+#### 4. wrangler.toml
+改 `name`、`account_id`，设置 Worker Secrets。
+
+#### 5. 推送上线
+```powershell
+git add -A && git commit -m "configure my site" && git push
+```
+
+## 写内容
+| 内容 | 地址 |
+|---|---|
+| 发唠叨 | `/newlaodao/` |
+| 写长文 | `/newsuibi/` |
+| 记走过 | `/newzouguo/` |
+
+## 自动同步
+- `douban.yml` 每天同步豆瓣观影
+- `weread.yml` 每天同步微信读书
+
+## 本地开发
 ```powershell
 $env:MAPBOX_TOKEN = (Get-Content .mapbox-token -Raw).Trim()
 hugo server
 ```
 
-## 内容模块
-
-| 模块 | 网页版编辑器 | 数据位置 |
-|---|---|---|
-| 随笔（长文） | `/newsuibi/` | `content/posts/` |
-| 唠叨（短句） | `/newlaodao/` | `content/laodao/` |
-| 走过（地点） | `/newzouguo/` | `content/zouguo/` |
-| 观影 | — | `assets/data/movies.json`（豆瓣同步） |
-| 书架 | — | `assets/data/books.json`（微信读书同步） |
-
-## 许可
-
-本站程序代码与合成示例内容采用根目录 `LICENSE` 中的 MIT License；
-第三方组件见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+## 鸣谢
+- 主题 [惊蛰/Jingzhe](https://github.com/koobai/blog)（MIT）
+- 地图 [Mapbox](https://www.mapbox.com/)
+- 地理数据 © [OpenStreetMap](https://www.openstreetmap.org/)
