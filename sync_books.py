@@ -254,6 +254,13 @@ def merge(local: List[dict], remote: List[dict]) -> Tuple[List[dict], int]:
                 if old.get(field) not in (None, "", []):
                     book[field] = old[field]
                     kept += 1
+            # 配色是本地从封面算出来的，接口不返回。这次没取到就沿用上次的 —— 
+            # 否则跑一次 --no-cover（或封面临时下载失败）就会把书脊颜色全清掉。
+            # 这个坑真实踩过：--no-cover 同步后「有主色 0 本」。
+            for field in ("dominant_color", "dominant_color_dark"):
+                if not book.get(field) and old.get(field):
+                    book[field] = old[field]
+                    kept += 1
         merged.append(book)
 
     merged.extend(existing.values())   # 远端没返回的保留
