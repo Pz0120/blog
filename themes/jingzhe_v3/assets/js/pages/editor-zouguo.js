@@ -405,13 +405,39 @@
 
   function renderPicked() {
     var step = $('pickedStep');
-    var img = $('pickedMap');
     if (!step || !pickedPlace) return;
 
-    if (img) {
-      img.src = staticMapUrl(pickedPlace, 640, 320);
-      img.alt = pickedPlace.name + ' 的位置预览';
+    /* 静态预览改成小型交互地图 —— 样式和走过页一致（之前用静态图+公开样式，看起来不一样）。
+       第一次渲染时创建地图，之后只飞到新位置。 */
+    var container = $('pickedMap');
+    if (container) {
+      if (!pickedMiniMap) {
+        loadCssOnce(CONFIG.mapboxCssUrl || 'https://registry.npmmirror.com/mapbox-gl/3.26.0/files/dist/mapbox-gl.css');
+        var createMiniMap = function () {
+          if (typeof mapboxgl === 'undefined') return;
+          mapboxgl.accessToken = mapboxToken();
+          pickedMiniMap = new mapboxgl.Map({
+            container: 'pickedMap',
+            style: pickerStyle(),
+            center: [pickedPlace.longitude, pickedPlace.latitude],
+            zoom: 11,
+            attributionControl: false,
+            cooperativeGestures: true,
+          });
+          pickedMiniMap.on('load', function () { pickedMiniMap.resize(); });
+        };
+        if (typeof mapboxgl !== 'undefined') {
+          createMiniMap();
+        } else {
+          loadScriptOnce(CONFIG.mapboxJsUrl || 'https://registry.npmmirror.com/mapbox-gl/3.26.0/files/dist/mapbox-gl.js').then(createMiniMap);
+        }
+      } else {
+        pickedMiniMap.setConfigProperties();
+        pickedMiniMap.setStyle(pickerStyle());
+        pickedMiniMap.flyTo({ center: [pickedPlace.longitude, pickedPlace.latitude], zoom: 11, speed: 1.2 });
+      }
     }
+
     var nameEl = $('pickedName');
     if (nameEl) nameEl.textContent = pickedPlace.name;
     var metaEl = $('pickedMeta');
@@ -458,6 +484,7 @@
   var pickerMap = null;
   var pickerMarker = null;
   var pickerLngLat = null;
+  var pickedMiniMap = null;
   var glPromise = null;
 
   function loadScriptOnce(url) {

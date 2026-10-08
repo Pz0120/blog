@@ -54,7 +54,7 @@
       {{/* ---- 已选地点 ---- */}}
       <section class="zg-step" id="pickedStep" hidden>
         <div class="zg-picked">
-          <img id="pickedMap" class="zg-map-preview" alt="地点预览" loading="lazy" decoding="async">
+          <div id="pickedMap" class="zg-map-preview"></div>
           <div class="zg-picked-body">
             <p id="pickedName" class="zg-picked-name"></p>
             <p id="pickedMeta" class="zg-picked-meta"></p>
@@ -124,7 +124,9 @@
         mapboxToken: {{ default "" $mapboxToken | jsonify | safeJS }},
         {{/* 编辑器地图也要用站点自己的样式，否则和走过页观感不一致（踩过） */}}
         mapboxLightStyle: {{ default "mapbox://styles/mapbox/light-v11" (index $mapConfig "mapboxlightstyle") | jsonify | safeJS }},
-        mapboxDarkStyle: {{ default "mapbox://styles/mapbox/dark-v11" (index $mapConfig "mapboxdarkstyle") | jsonify | safeJS }}
+        mapboxDarkStyle: {{ default "mapbox://styles/mapbox/dark-v11" (index $mapConfig "mapboxdarkstyle") | jsonify | safeJS }},
+        mapboxCssUrl: {{ default "" (index $mapConfig "mapboxcssurl") | jsonify | safeJS }},
+        mapboxJsUrl: {{ default "" (index $mapConfig "mapboxjsurl") | jsonify | safeJS }}
     };
 </script>
 {{ partial "jingzhe/script.html" (dict "path" "js/pages/editor-zouguo.js" "defer" true) }}
