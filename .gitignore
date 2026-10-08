@@ -2,3 +2,7 @@
 .hugo_build.lock
 public/
 resources/
+
+# 工作流文件需要 token 带 workflow 权限才能推送；先用网页版添加
+# 或给 token 补上 workflow 权限后，把这一行删掉即可
+.github/
