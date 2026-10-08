@@ -820,16 +820,47 @@
   }
 
   function initApp() {
-    if (CORE.getAdminToken()) {
-      var overlay = $('loginOverlay');
-      var panel = $('adminPanel');
+    var overlay = $('loginOverlay');
+    var panel = $('adminPanel');
+    var token = CORE.getAdminToken();
+
+    if (!token) {
+      if (overlay) overlay.style.display = 'flex';
+      return;
+    }
+
+    /* 存量口令必须先验证再展开面板。
+       原来只要 localStorage 里有东西就无条件显示面板 —— 于是口令一改，
+       用户看到的是能用的界面、一发就 401「口令错误或已失效」，
+       而且因为看不到登录框，根本没地方重新输入，成了死循环。
+       现在验证不过就清掉并退回登录框。 */
+    secureFetch(CONFIG.workerUrl + '/api/github', {
+      headers: { 'x-target-url': CORE.repositoryUrl(CONFIG) }
+    }).then(function () {
       if (overlay) overlay.style.display = 'none';
       if (panel) panel.style.display = 'block';
       initPanel();
-    } else {
-      var login = $('loginOverlay');
-      if (login) login.style.display = 'flex';
-    }
+    }).catch(function () {
+      CORE.clearAdminToken();
+      if (panel) panel.style.display = 'none';
+      if (overlay) overlay.style.display = 'flex';
+      var input = $('adminTokenInput');
+      if (input) {
+        input.value = '';
+        input.setAttribute('placeholder', '口令已失效，请重新输入');
+      }
+    });
+  }
+
+  /* 面板里的「换个口令」：清掉本地口令并回到登录框 */
+  function changeToken() {
+    CORE.clearAdminToken();
+    var panel = $('adminPanel');
+    var overlay = $('loginOverlay');
+    if (panel) panel.style.display = 'none';
+    if (overlay) overlay.style.display = 'flex';
+    var input = $('adminTokenInput');
+    if (input) { input.value = ''; input.focus(); }
   }
 
   window.verifyToken = verifyToken;
@@ -840,6 +871,7 @@
   window.saveLocalDraft = saveLocalDraft;
   window.toggleMapPicker = toggleMapPicker;
   window.confirmPicker = confirmPicker;
+  window.changeToken = changeToken;
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initApp);
