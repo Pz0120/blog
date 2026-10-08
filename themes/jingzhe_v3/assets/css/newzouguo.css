@@ -314,6 +314,39 @@
   text-align: center;
 }
 
+/* --- 地图选点（搜不到的地方手动拖点）----------------------------------- */
+
+.zg-picker {
+  margin-top: 10px;
+  border: 1px solid var(--theme-glass-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.zg-picker[hidden] {
+  display: none;
+}
+
+.zg-picker-map {
+  width: 100%;
+  height: 300px;
+  background-color: var(--theme-subtle-fill);
+}
+
+.zg-picker-hint {
+  margin: 0;
+  padding: 8px 12px 0;
+  font-size: 0.74rem;
+  color: var(--text-info-color);
+}
+
+.zg-picker-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: flex-end;
+  padding: 8px 12px 12px;
+}
+
 @media (max-width: 640px) {
   .zg-form {
     padding: 14px 14px 2px;
@@ -322,5 +355,9 @@
 
   .zg-submit-row {
     padding: 14px 14px 20px;
+  }
+
+  .zg-picker-map {
+    height: 260px;
   }
 }

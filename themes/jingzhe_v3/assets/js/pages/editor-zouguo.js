@@ -185,6 +185,82 @@
     };
   }
 
+  /* ------------------------------------------------------------------ */
+  /* 候选地点：把两个数据源统一成同一种形状                               */
+  /* Mapbox 的 feature 和 Nominatim 的 item 结构差得很远，与其在渲染处   */
+  /* 到处判断来源，不如各自先转成统一的候选对象。                         */
+  /* ------------------------------------------------------------------ */
+
+  function candidateFromMapbox(feature) {
+    try {
+      return {
+        name: feature.text || feature.place_name || '',
+        fullName: feature.place_name || '',
+        place: toPlace(feature)
+      };
+    } catch (_error) {
+      return null;                       // 缺国家代码之类的结果直接丢掉
+    }
+  }
+
+  /* Nominatim（OpenStreetMap）：国内景区覆盖比 Mapbox 好得多，
+     Mapbox 搜不到时作为补充。OSM 的 country_code 是小写，要转大写。 */
+  function candidateFromNominatim(item) {
+    var address = item.address || {};
+    var longitude = Number(item.lon);
+    var latitude = Number(item.lat);
+    if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) return null;
+
+    var countryCode = String(address.country_code || '').toUpperCase();
+    if (!/^[A-Z]{2}$/.test(countryCode)) return null;
+
+    var osmType = String(item.osm_type || '').toLowerCase();
+    var osmId = String(item.osm_id || '');
+    var id = ('osm:' + osmType + ':' + osmId).toLowerCase().replace(/[^a-z0-9._:-]/g, '-');
+
+    var type = String(item.type || '');
+    var precision = 'poi';
+    if (/^(city|town|village|hamlet|municipality|suburb|neighbourhood|borough)$/.test(type)) {
+      precision = 'locality';
+    } else if (/^(state|province|region|county|administrative|country)$/.test(type)) {
+      precision = 'region';
+    }
+
+    var locality = address.city || address.town || address.village
+      || address.county || address.municipality || '';
+
+    return {
+      name: item.name || String(item.display_name || '').split(',')[0] || '',
+      fullName: item.display_name || '',
+      place: {
+        id: id,
+        name: item.display_name || item.name || '',
+        longitude: longitude,
+        latitude: latitude,
+        precision: precision,
+        privacy: 'public',
+        country: address.country || '',
+        countryCode: countryCode,
+        region: address.state || address.province || '',
+        regionCode: '',
+        locality: locality,
+        localityCode: '',
+        provider: 'nominatim',
+        providerId: item.osm_type ? (item.osm_type + '/' + item.osm_id) : ''
+      }
+    };
+  }
+
+  async function searchNominatim(keyword, worldwide) {
+    var url = 'https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1' +
+      '&limit=6&accept-language=zh-CN&q=' + encodeURIComponent(keyword) +
+      (worldwide ? '' : '&countrycodes=cn');
+    var response = await fetch(url, { headers: { Accept: 'application/json' } });
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+    var list = await response.json();
+    return (Array.isArray(list) ? list : []).map(candidateFromNominatim).filter(Boolean);
+  }
+
   /* 静态地图预览：一张图就够，不用加载 1.85MB 的 mapbox-gl */
   function staticMapUrl(place, width, height) {
     var token = mapboxToken();
@@ -215,14 +291,35 @@
     hideResults();
 
     try {
-      var features = await geocodeForward(keyword, worldwide);
+      /* 两个数据源一起查，合并去重。
+         Mapbox 对国内景区覆盖有限，OpenStreetMap 常常有；反过来
+         Mapbox 对国外地名、连锁店更全。所以谁也别替代谁。 */
+      var settled = await Promise.all([
+        geocodeForward(keyword, worldwide)
+          .then(function (list) {
+            return list.map(candidateFromMapbox).filter(Boolean);
+          })
+          .catch(function () { return []; }),
+        searchNominatim(keyword, worldwide).catch(function () { return []; })
+      ]);
       if (seq !== searchSeq) return;                 // 有更新的搜索了，丢弃
-      if (!features.length) {
-        setStatus('没找到这个地方，换个写法，或勾上「搜索全球」');
+
+      var candidates = settled[0].concat(settled[1]);
+      // 按「经度,纬度」粗粒度去重（两个源常有同一条）
+      var seen = {};
+      candidates = candidates.filter(function (item) {
+        var key = item.place.longitude.toFixed(3) + ',' + item.place.latitude.toFixed(3);
+        if (seen[key]) return false;
+        seen[key] = true;
+        return true;
+      });
+
+      if (!candidates.length) {
+        setStatus('两个数据源都没找到。换个写法，勾「搜索全球」，或者点「在地图上选点」直接标位置。');
         return;
       }
-      setStatus('找到 ' + features.length + ' 个，点一个确认');
-      renderResults(features);
+      setStatus('找到 ' + candidates.length + ' 个，点一个确认');
+      renderResults(candidates);
     } catch (error) {
       if (seq !== searchSeq) return;
       setStatus('搜索失败：' + (error.message || error) + '（可重试）', true);
@@ -238,11 +335,11 @@
     list.innerHTML = '';
   }
 
-  function renderResults(features) {
+  function renderResults(candidates) {
     var list = $('placeResults');
     if (!list) return;
     list.innerHTML = '';
-    features.forEach(function (feature) {
+    candidates.forEach(function (candidate) {
       var li = document.createElement('li');
       var button = document.createElement('button');
       button.type = 'button';
@@ -250,30 +347,25 @@
 
       var name = document.createElement('span');
       name.className = 'zg-result-name';
-      name.textContent = feature.text || feature.place_name || '';
+      name.textContent = candidate.name;
 
       var addr = document.createElement('span');
       addr.className = 'zg-result-addr';
-      addr.textContent = feature.place_name || '';
+      addr.textContent = candidate.fullName;
 
       button.appendChild(name);
       button.appendChild(addr);
-      button.addEventListener('click', function () { selectFeature(feature); });
+      button.addEventListener('click', function () { selectCandidate(candidate); });
       li.appendChild(button);
       list.appendChild(li);
     });
     list.hidden = false;
   }
 
-  function selectFeature(feature) {
-    var place;
-    try {
-      place = toPlace(feature);
-    } catch (error) {
-      setStatus(error.message, true);
-      return;
-    }
-    pickedFeature = feature;
+  function selectCandidate(candidate) {
+    if (!candidate || !candidate.place) return;
+    var place = candidate.place;
+    pickedFeature = null;
     pickedPlace = place;
     hideResults();
     setStatus('');
@@ -287,7 +379,7 @@
     /* 没填标题时自动带上地点名 */
     var titleInput = $('title');
     if (titleInput && !titleInput.value.trim()) {
-      var shortName = (feature.text || place.name.split(',')[0] || '').trim();
+      var shortName = (candidate.name || place.name.split(',')[0] || '').trim();
       if (shortName) titleInput.value = shortName;
     }
   }
@@ -321,6 +413,144 @@
     scheduleDraftSave();
   }
 
+  /* ------------------------------------------------------------------ */
+  /* 地图选点：搜不到的地方（很多国内景区 Mapbox 里没有）直接拖点          */
+  /*                                                                     */
+  /* mapbox-gl 有 1.85MB，所以按需懒加载 —— 不点这个按钮就不下载。        */
+  /* 库文件走国内镜像 npmmirror（官方源在国内 0/4 通不过）。              */
+  /*                                                                     */
+  /* 这里刻意用 outdoors-v12 而不是走过页那套极简样式：选点需要能看清     */
+  /* 地形、道路和 POI，越简的地图越找不到地方。                           */
+  /* ------------------------------------------------------------------ */
+
+  var GL_JS = 'https://registry.npmmirror.com/mapbox-gl/3.26.0/files/dist/mapbox-gl.js';
+  var GL_CSS = 'https://registry.npmmirror.com/mapbox-gl/3.26.0/files/dist/mapbox-gl.css';
+  var PICKER_STYLE = 'mapbox://styles/mapbox/outdoors-v12';
+
+  var pickerMap = null;
+  var pickerMarker = null;
+  var pickerLngLat = null;
+  var glPromise = null;
+
+  function loadScriptOnce(url) {
+    if (glPromise) return glPromise;
+    glPromise = new Promise(function (resolve, reject) {
+      var script = document.createElement('script');
+      script.src = url;
+      script.async = true;
+      script.onload = function () { resolve(); };
+      script.onerror = function () { reject(new Error('地图库加载失败，检查一下网络')); };
+      document.head.appendChild(script);
+    });
+    return glPromise;
+  }
+
+  function loadCssOnce(href) {
+    if (document.querySelector('link[data-zg-gl]')) return;
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    link.setAttribute('data-zg-gl', '1');
+    document.head.appendChild(link);
+  }
+
+  function setPickerPoint(lngLat) {
+    pickerLngLat = lngLat;
+    if (pickerMarker) pickerMarker.setLngLat(lngLat);
+  }
+
+  async function ensurePickerMap() {
+    if (pickerMap) return pickerMap;
+    var token = mapboxToken();
+    if (!token) throw new Error('缺少 Mapbox 令牌');
+
+    setStatus('正在加载地图库…');
+    loadCssOnce(GL_CSS);
+    await loadScriptOnce(GL_JS);
+    if (typeof mapboxgl === 'undefined') throw new Error('地图库没加载出来');
+
+    mapboxgl.accessToken = token;
+    pickerMap = new mapboxgl.Map({
+      container: 'pickerMap',
+      style: PICKER_STYLE,
+      center: pickerLngLat ? [pickerLngLat.lng, pickerLngLat.lat] : [112.8, 30.2],
+      zoom: pickerLngLat ? 12 : 3.5,
+      attributionControl: false
+    });
+
+    pickerMarker = new mapboxgl.Marker({ draggable: true, color: '#994d61' })
+      .setLngLat([pickerLngLat ? pickerLngLat.lng : 112.8,
+                  pickerLngLat ? pickerLngLat.lat : 30.2])
+      .addTo(pickerMap);
+    pickerMarker.on('dragend', function () {
+      var p = pickerMarker.getLngLat();
+      setPickerPoint({ lng: p.lng, lat: p.lat });
+    });
+
+    /* 点地图任意处也能放图钉 —— 手机上拖动不如点一下方便 */
+    pickerMap.on('click', function (event) {
+      setPickerPoint({ lng: event.lngLat.lng, lat: event.lngLat.lat });
+    });
+
+    /* 定位到当前位置作为起点 */
+    if (!pickerLngLat && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(function (position) {
+        var here = { lng: position.coords.longitude, lat: position.coords.latitude };
+        setPickerPoint(here);
+        pickerMap.flyTo({ center: [here.lng, here.lat], zoom: 12 });
+      }, function () { /* 拒绝定位就用默认视野 */ },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
+    }
+
+    return pickerMap;
+  }
+
+  async function toggleMapPicker(force) {
+    var wrap = $('pickerWrap');
+    if (!wrap) return;
+    var show = typeof force === 'boolean' ? force : wrap.hidden;
+    if (!show) { wrap.hidden = true; return; }
+
+    wrap.hidden = false;
+    var button = $('pickerBtn');
+    if (button) button.disabled = true;
+    try {
+      await ensurePickerMap();
+      setStatus('在地图上拖图钉或点一下，选好点「用这个位置」');
+      /* 容器刚显示出来时尺寸是 0，必须 resize 否则地图是灰的 */
+      window.setTimeout(function () { if (pickerMap) pickerMap.resize(); }, 60);
+    } catch (error) {
+      setStatus('地图打不开：' + (error.message || error), true);
+      wrap.hidden = true;
+    } finally {
+      if (button) button.disabled = false;
+    }
+  }
+
+  async function confirmPicker() {
+    if (!pickerLngLat) {
+      setStatus('先在图上选一个位置', true);
+      return;
+    }
+    var button = $('pickerConfirm');
+    if (button) button.disabled = true;
+    setStatus('正在反查地名…');
+    try {
+      var feature = await geocodeReverse(pickerLngLat.lng, pickerLngLat.lat);
+      var candidate = feature ? candidateFromMapbox(feature) : null;
+      if (candidate) {
+        selectCandidate(candidate);
+        setStatus('已按你选的位置填入，确认地名对不对');
+      } else {
+        setStatus('这个点反查不到地名（可能太偏），换个说法或直接搜索', true);
+      }
+    } catch (error) {
+      setStatus('反查失败：' + (error.message || error) + '（可重试）', true);
+    } finally {
+      if (button) button.disabled = false;
+    }
+  }
+
   async function useCurrentLocation() {
     if (!navigator.geolocation) {
       setStatus('这个浏览器不支持定位', true);
@@ -337,10 +567,15 @@
       try {
         var feature = await geocodeReverse(longitude, latitude);
         if (feature) {
-          selectFeature(feature);
-          setStatus('已按当前位置填入，确认一下地名对不对');
+          var candidate = candidateFromMapbox(feature);
+          if (candidate) {
+            selectCandidate(candidate);
+            setStatus('已按当前位置填入，确认一下地名对不对');
+          } else {
+            setStatus('反查到的地点缺少国家信息，请手动搜索', true);
+          }
         } else {
-          setStatus('反查不到地名，请手动搜索', true);
+          setStatus('反查不到地名，请手动搜索，或点「在地图上选点」', true);
         }
       } catch (error) {
         setStatus('反查失败：' + (error.message || error), true);
@@ -575,6 +810,8 @@
   window.clearPlace = clearPlace;
   window.publishZouguo = publishZouguo;
   window.saveLocalDraft = saveLocalDraft;
+  window.toggleMapPicker = toggleMapPicker;
+  window.confirmPicker = confirmPicker;
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initApp);

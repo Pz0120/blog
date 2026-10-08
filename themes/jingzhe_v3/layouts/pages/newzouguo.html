@@ -29,10 +29,26 @@
           <button type="button" id="locateBtn" class="zg-link-btn" onclick="useCurrentLocation()">
             用当前位置
           </button>
+          <button type="button" id="pickerBtn" class="zg-link-btn" onclick="toggleMapPicker()">
+            在地图上选点
+          </button>
         </div>
 
         <p id="placeStatus" class="zg-status" role="status"></p>
         <ul id="placeResults" class="zg-results" hidden></ul>
+
+        {{/* 地图选点：搜不到的地方（很多国内景区在 Mapbox 里没有）就手动拖点。
+             地图库按需懒加载，不打开就不下载那 1.8MB。 */}}
+        <div id="pickerWrap" class="zg-picker" hidden>
+          <div id="pickerMap" class="zg-picker-map"></div>
+          <p class="zg-picker-hint">拖动图钉选位置，或直接点地图</p>
+          <div class="zg-picker-actions">
+            <button type="button" class="zg-link-btn" id="pickerConfirm" onclick="confirmPicker()">
+              用这个位置
+            </button>
+            <button type="button" class="zg-link-btn" onclick="toggleMapPicker(false)">收起</button>
+          </div>
+        </div>
       </section>
 
       {{/* ---- 已选地点 ---- */}}
