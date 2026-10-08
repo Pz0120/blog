@@ -30,7 +30,7 @@ cleanDestinationDir = true
   laodaotag = "laodaotags"
 
 # Hugo 默认只允许模板读取 HUGO_ 前缀的环境变量（安全策略）。
-# 地图令牌不进仓库，改由 publish.ps1 注入 MAPBOX_TOKEN，模板用
+# 地图令牌不进仓库，改由 Cloudflare 构建变量 MAPBOX_TOKEN 注入，模板用
 # os.Getenv "MAPBOX_TOKEN" 读取，所以要把这个名字加进白名单。
 # 见 themes/jingzhe_v3/layouts/zouguo.html
 [security.funcs]

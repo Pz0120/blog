@@ -65,8 +65,8 @@ RSSNoContent = false
 [services.exercise]
   # 不要在仓库里写 token：GitHub 推送保护会把它当密钥直接拒绝推送（GH013），
   # 公开仓库里的令牌也会被爬虫扫走。
-  # token 存在站点根目录的 .mapbox-token（已 gitignore），
-  # 由 publish.ps1 读出来注入环境变量 MAPBOX_TOKEN，模板再取。
+  # token 存在站点根目录的 .mapbox-token（已 gitignore，本地开发用），
+  # 线上构建由 Cloudflare 的构建变量 MAPBOX_TOKEN 提供，模板再取。
   mapboxToken = ""
   mapboxApiOrigin = "https://api.mapbox.com"
   mapboxEventsOrigin = "https://events.mapbox.com"
