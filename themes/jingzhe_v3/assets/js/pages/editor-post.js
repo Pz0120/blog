@@ -87,6 +87,10 @@
         placePicker = window.JingzhePlace.create({
             root: zouguoPlaceRoot,
             config: CONFIG,
+            /* 带上城市名能显著提高命中率：Mapbox 对中国大陆只有行政区级数据，
+               搜「天安门广场」这种纯 POI 会回退到一个不相干的县；补上城市后
+               OpenStreetMap 那一路能稳稳命中。 */
+            placeholder: '输入地名，带上城市更准，如「杭州 西湖」「北京 天安门」',
             hint: '搜地名，或在地图上直接点位置',
             onChange: () => { scheduleSaveDraft(); dirtyState.mark(); }
         });
