@@ -120,9 +120,11 @@
     var token = mapboxToken();
     if (!token) throw new Error('缺少 Mapbox 令牌，无法搜索地名');
     var scope = worldwide ? '' : '&country=cn';
+    /* proximity=ip 让结果偏向访问者的实际位置——搜「西湖」时能返回杭州的那个，
+       而不是其他城市的西湖区。这是定位不准最常见的诱因之一。 */
     var url = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' +
       encodeURIComponent(keyword) + '.json?language=zh-Hans&limit=6' + scope +
-      '&access_token=' + encodeURIComponent(token);
+      '&proximity=ip&access_token=' + encodeURIComponent(token);
     var data = await fetchJson(url, 3);
     return (data && data.features) || [];
   }
@@ -331,6 +333,16 @@
         if (seen[key]) return false;
         seen[key] = true;
         return true;
+      });
+
+      /* 排序：更具体的结果排前面。
+         搜「西湖」时 Mapbox 会先返回「西湖区」（行政区中心），而不是西湖景区——
+         这就是定位不准的根因。让 poi/neighborhood 优先于 locality/region。 */
+      var TYPE_ORDER = { poi: 0, address: 1, neighborhood: 2, place: 3, locality: 4, region: 5, country: 6, district: 7 };
+      candidates.sort(function (a, b) {
+        var pa = TYPE_ORDER[a.place.precision] != null ? TYPE_ORDER[a.place.precision] : 9;
+        var pb = TYPE_ORDER[b.place.precision] != null ? TYPE_ORDER[b.place.precision] : 9;
+        return pa - pb;
       });
 
       if (!candidates.length) {
