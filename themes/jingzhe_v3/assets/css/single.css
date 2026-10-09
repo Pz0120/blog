@@ -26,9 +26,21 @@
 .page-blog-single .article-header .article-cover-img,
 .page-bowen-admin .article-header .article-cover-img {
   width: 100%;
-  border-radius: 16px;
+  /* 封面必须限高。手机拍的竖图是 3:4，不限高就会按原比例铺成 800×1067 ——
+     在桌面上比一屏还高，整屏被封面占满。
+     另外 object-fit 只有在高度确定时才真正生效：原来只写了 object-fit: cover
+     却没有高度，等于一直没起作用。想看完整原图可以点开灯箱（cursor: zoom-in）。 */
+  max-height: 60vh;
   object-fit: cover;
+  border-radius: 16px;
   cursor: zoom-in;
+}
+
+@media (min-width: 768px) {
+  .page-blog-single .article-header .article-cover-img,
+  .page-bowen-admin .article-header .article-cover-img {
+    max-height: 520px;
+  }
 }
 
 .page-blog-single .article-content,

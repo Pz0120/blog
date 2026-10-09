@@ -28,7 +28,7 @@
           <img loading="lazy" decoding="async" src="{{ $image.disp | safeURL }}"
                {{ if ne $image.disp $image.original }}data-original="{{ $image.original | safeURL }}"
                onerror="this.onerror=null;this.src=this.dataset.original||this.src;"{{ end }}
-               {{ if $image.enabled }}srcset="{{ $image.small | safeURL }} {{ $image.smallWidth }}w, {{ $image.large | safeURL }} {{ $image.largeWidth }}w"
+               {{ if or $image.enabled $image.derived }}srcset="{{ $image.small | safeURL }} {{ $image.smallWidth }}w, {{ $image.large | safeURL }} {{ $image.largeWidth }}w"
                sizes="(min-width: 840px) 252px, (min-width: 768px) 30vw, 50vw"{{ end }}
                alt="{{ .Title }}" />
         </a> 
