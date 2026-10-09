@@ -25,6 +25,38 @@
   /* 排序权重：越具体越靠前 */
   var TYPE_ORDER = { poi: 0, address: 1, neighborhood: 2, place: 3, locality: 4, region: 5, country: 6, district: 7 };
 
+  /* ------------------------------------------------------------------ */
+  /* 名字处理                                                            */
+  /*                                                                     */
+  /* Nominatim 的 display_name 会把整条行政链串起来，比如                  */
+  /*   「澳門美高梅, 柏嘉街, 新口岸新填海區 (皇朝區), 大堂區, 澳門,         */
+  /*     999078, 中国」                                                  */
+  /* 直接存进 front matter 又长又重复，地图卡片上也没法看。                */
+  /* 上游作者手写的名字是「杭州 · 临平山公园」这种短名，这里按同样的习惯    */
+  /* 自动生成：有城市就用「城市 · 地点」，地点本身已经带城市前缀就不再重复。 */
+  /* ------------------------------------------------------------------ */
+
+  function conciseName(shortName, locality, region) {
+    var spot = String(shortName || '').trim();
+    var label = String(locality || region || '').trim();
+    if (!spot) return label;
+    if (!label || label === spot) return spot;
+    /* 「澳門美高梅」已经含「澳門」，再拼一次就成了废话 */
+    if (spot.indexOf(label) === 0) return spot;
+    return label + ' · ' + spot;
+  }
+
+  /* 结果列表第二行：去掉开头和第一行重复的那一段 */
+  function trimAddress(fullName, shortName) {
+    var full = String(fullName || '').trim();
+    var spot = String(shortName || '').trim();
+    if (!full) return '';
+    if (spot && full.indexOf(spot) === 0) {
+      return full.slice(spot.length).replace(/^[\s,，]+/, '').trim();
+    }
+    return full;
+  }
+
   var glPromise = null;
   var cssLoaded = false;
 
@@ -101,18 +133,21 @@
     var rawId = String(feature.id || '').toLowerCase().replace(/[^a-z0-9._:-]/g, '-');
     var id = 'mapbox:' + (rawId || 'x' + Date.now());
 
+    var localityText = (placeEntry && placeEntry.text) || (localityEntry && localityEntry.text) || '';
+    var regionText = (regionEntry && regionEntry.text) || '';
+
     return {
       id: id,
-      name: String(feature.place_name || feature.text || ''),
+      name: conciseName(feature.text || feature.place_name, localityText, regionText),
       longitude: longitude,
       latitude: latitude,
       precision: precisionOf(feature),
       privacy: 'public',
       country: (countryEntry && countryEntry.text) || '',
       countryCode: countryCode,
-      region: (regionEntry && regionEntry.text) || '',
+      region: regionText,
       regionCode: (regionEntry && regionEntry.short_code) || '',
-      locality: (placeEntry && placeEntry.text) || (localityEntry && localityEntry.text) || '',
+      locality: localityText,
       localityCode: '',
       provider: 'mapbox',
       providerId: String(feature.id || '')
@@ -156,20 +191,22 @@
 
     var locality = address.city || address.town || address.village
       || address.county || address.municipality || '';
+    var region = address.state || address.province || '';
+    var shortName = item.name || String(item.display_name || '').split(',')[0] || '';
 
     return {
-      name: item.name || String(item.display_name || '').split(',')[0] || '',
+      name: shortName,
       fullName: item.display_name || '',
       place: {
         id: id,
-        name: item.display_name || item.name || '',
+        name: conciseName(shortName, locality, region),
         longitude: longitude,
         latitude: latitude,
         precision: precision,
         privacy: 'public',
         country: address.country || '',
         countryCode: countryCode,
-        region: address.state || address.province || '',
+        region: region,
         regionCode: '',
         locality: locality,
         localityCode: '',
@@ -316,7 +353,10 @@
         var button = el('button', 'zg-result');
         button.type = 'button';
         button.appendChild(el('span', 'zg-result-name', candidate.name));
-        button.appendChild(el('span', 'zg-result-addr', candidate.fullName));
+        /* 地址行去掉开头和名字重复的那一段，否则第一行「西湖」第二行又以
+           「西湖, ...」开头，看着就是废话 */
+        var address = trimAddress(candidate.fullName, candidate.name);
+        if (address) button.appendChild(el('span', 'zg-result-addr', address));
         button.addEventListener('click', function () { selectCandidate(candidate); });
         li.appendChild(button);
         resultsList.appendChild(li);
@@ -376,6 +416,9 @@
     function selectCandidate(candidate) {
       if (!candidate || !candidate.place) return;
       pickedPlace = candidate.place;
+      /* 完整地址只在界面上做悬停提示用。写进 front matter 的字段由
+         editor-core 的白名单决定，这个额外属性不会漏进 YAML。 */
+      pickedPlace.fullName = candidate.fullName || '';
       hideResults();
       pickerWrap.hidden = true;
       setStatus('');
@@ -391,11 +434,18 @@
       if (!pickedPlace) { pickedBox.hidden = true; return; }
 
       var body = el('div', 'zg-picked-body');
-      body.appendChild(el('span', 'zg-picked-name', pickedPlace.name));
-      var meta = el('span', 'zg-picked-meta',
-        pickedPlace.longitude.toFixed(5) + ', ' + pickedPlace.latitude.toFixed(5)
-        + ' · ' + pickedPlace.precision);
-      body.appendChild(meta);
+      /* 第一行是存进文章里的短名（「杭州市 · 西湖」），不是整条行政链 */
+      var nameEl = el('span', 'zg-picked-name', pickedPlace.name);
+      /* 完整地址放到 title 里，鼠标悬停能看全，也不占版面 */
+      if (pickedPlace.fullName) nameEl.title = pickedPlace.fullName;
+      body.appendChild(nameEl);
+
+      var metaParts = [pickedPlace.longitude.toFixed(5) + ', ' + pickedPlace.latitude.toFixed(5), pickedPlace.precision];
+      var area = [pickedPlace.region, pickedPlace.locality]
+        .filter(function (value, index, list) { return value && list.indexOf(value) === index; })
+        .join(' · ');
+      if (area && area !== pickedPlace.name) metaParts.unshift(area);
+      body.appendChild(el('span', 'zg-picked-meta', metaParts.join(' · ')));
 
       var clearBtn = el('button', 'zg-link-btn', '清除');
       clearBtn.type = 'button';
