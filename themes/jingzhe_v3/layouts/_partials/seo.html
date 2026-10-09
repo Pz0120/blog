@@ -57,6 +57,24 @@
 {{- end -}}
 {{- $images = uniq $images -}}
 
+{{- /* 分享卡片（og:image / twitter:image / JSON-LD）也要走自己的 CDN 域名。
+       历史内容里存的还是 R2 的 r2.dev 直连地址，这里按同一张映射表换掉 ——
+       否则分享出去时爬虫拉的是不走缓存的直连域名。 */ -}}
+{{- $originMap := (site.Params.services.images | default dict).imageOriginMap | default dict -}}
+{{- if and $originMap (gt (len $images) 0) -}}
+  {{- $mapped := slice -}}
+  {{- range $images -}}
+    {{- $url := . -}}
+    {{- range $from, $to := $originMap -}}
+      {{- if strings.HasPrefix $url $from -}}
+        {{- $url = printf "%s%s" (replaceRE "/+$" "" $to) (strings.TrimPrefix $from $url) -}}
+      {{- end -}}
+    {{- end -}}
+    {{- $mapped = $mapped | append $url -}}
+  {{- end -}}
+  {{- $images = $mapped -}}
+{{- end -}}
+
 {{- $tags := slice -}}
 {{- with .Params.tags -}}
   {{- range . -}}
