@@ -1,4 +1,6 @@
-# 与线上部署一致。Secret 不在这里，用：
+# 本目录是 jingzhe-mobile/cf-deploy/worker 的快照，不参与实际部署。
+# 线上改动必须以那份为准；改线上后请同步回这里，否则这份会悄悄落后。
+# Secret 不在文件里，用：
 #   npx wrangler secret put ADMIN_TOKEN
 #   npx wrangler secret put GH_TOKEN
 name = "jingzhe-publisher"
@@ -11,7 +13,9 @@ GITHUB_OWNER = "Pz0120"
 GITHUB_REPO = "blog"
 GITHUB_BRANCH = "main"
 GITHUB_USER_AGENT = "Jingzhe-Publisher-Worker"
-IMAGE_BASE_URL = "https://pub-9486120c22024bfabb4ce77614684508.r2.dev"
+# 图片走自己的 CDN 域名。曾经这里是 R2 的 r2.dev 直连域名（不走缓存、有限流），
+# 照这份配置部署会把线上打回旧域名，所以跟着线上一起改了。
+IMAGE_BASE_URL = "https://img.peixy.xyz"
 
 [[r2_buckets]]
 binding = "R2_BUCKET"

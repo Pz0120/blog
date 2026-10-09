@@ -12,7 +12,9 @@
 {{- $mapboxJsUrl := default "https://registry.npmmirror.com/mapbox-gl/3.26.0/files/dist/mapbox-gl.js" (index $mapConfig "mapboxjsurl") -}}
 {{- /* token 优先取 params，其次取环境变量 MAPBOX_TOKEN。
        为什么不写进 params.toml：GitHub 推送保护会把它当密钥拒绝推送（GH013），
-       公开仓库里的 token 也会被爬虫扫走。构建时由 publish.ps1 注入。 */ -}}
+       公开仓库里的 token 也会被爬虫扫走。
+       线上由 Cloudflare 的构建变量 MAPBOX_TOKEN 注入；本地开发自己设环境变量
+       （见 README）。hugo.toml 的 [security.funcs] getenv 白名单已放行它。 */ -}}
 {{- $mapboxToken := or (index $mapConfig "mapboxtoken") (os.Getenv "MAPBOX_TOKEN") -}}
 {{- /* 原来这里硬编码了作者 koobai 的私有样式，别人的 token 会 404；
        改成读 params.services.exercise，并回落到 Mapbox 公开样式。 */ -}}

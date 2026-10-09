@@ -65,6 +65,9 @@ RSSNoContent = false
   deliveryOrigin = ""
   thumbnailSuffix = "_thumb"
   largeSuffix = "_large"
+  # 显式写出来：模板 responsive-image.html 会读这个键决定要不要按命名约定推导派生图。
+  # 之前这里没有这个键，全靠模板里的 default true 兜着，配置和代码对不上。
+  thumbnailByConvention = true
   thumbWidth = 128
   smallWidth = 640
   largeWidth = 960
