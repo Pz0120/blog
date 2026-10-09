@@ -338,12 +338,6 @@
   const THUMB_SUFFIX = '_thumb';
   const LARGE_SUFFIX = '_large';
 
-  function compressImage(file) {
-    return decodeImage(file).then(function (image) {
-      return drawToWebp(image, { maxEdge: FULL_MAX_EDGE }, FULL_QUALITY);
-    });
-  }
-
   function uploadOne(config, filename, blob) {
     return secureFetch(`${config.workerUrl}/api/upload?name=${filename}`, {
       method: 'POST',
@@ -439,7 +433,6 @@
     buildLaodaoMarkdown,
     createDirtyTracker,
     fetchTagTitles,
-    compressImage,
     uploadImage,
     renderMarkdown,
     repositoryUrl,

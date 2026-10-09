@@ -49,3 +49,19 @@ a {
 img {
   filter: var(--theme-image-filter);
 }
+
+/* 页面导语：观影、书架、后台三个页面都在用。
+   原先住在 about.css 里，但那个文件除了这一条之外全部落空（没有关于页），
+   所以把唯一在用的规则搬到这里，about.css 整个删掉。
+   注意：下面 margin-bottom 会被后面的 margin: auto 覆盖，属于历史遗留，
+   保留原样以免改变观感。 */
+.pagetitle {
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  max-width: 640px;
+  margin: auto;
+  padding-bottom: 20px;
+  text-align: center;
+  color: var(--theme-page-intro-color);
+}

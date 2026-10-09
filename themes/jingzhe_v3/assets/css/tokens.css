@@ -22,18 +22,15 @@
   /* Active semantic tokens. Existing names are intentionally preserved for
      editor scripts, historical content and theme compatibility. */
   --background-body-color: var(--palette-background-body-light);
-  --background-dark-body-color: var(--palette-background-body-dark);
   --background-card-color: var(--palette-background-card-light);
   --background-card-dark-color: var(--palette-background-card-dark);
   --background-card-border-color: var(--palette-background-card-border-light);
-  --background-card-border-dark-color: var(--palette-background-card-border-dark);
   --text-content-color: var(--palette-text-content-light);
   --text-content-dark-color: var(--palette-text-content-dark);
   --text-highlight-color: var(--palette-text-highlight-light);
   --text-highlight-dark-color: var(--palette-text-highlight-dark);
   --text-info-color: var(--palette-text-info-light);
   --text-info-dark-color: var(--palette-text-info-dark);
-  --exercise-text-highlight-color: #32d74b;
 
   /* Component surfaces that change with the active theme. */
   --theme-glass-background: rgba(255, 255, 255, 0.5);

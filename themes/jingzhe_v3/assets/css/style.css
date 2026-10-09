@@ -11,12 +11,8 @@
 {{ if partial "jingzhe/feature-enabled.html" "books" }}
 @import "books.css";
 {{ end }}
-@import "about.css";
 @import "list.css";
 @import "zouguo/index.css";
-{{ if partial "jingzhe/feature-enabled.html" "exercise" }}
-@import "exercise/index.css";
-{{ end }}
 @import "laodao.css";
 {{ if partial "jingzhe/feature-enabled.html" "publisher" }}
 @import "newlaodao.css";

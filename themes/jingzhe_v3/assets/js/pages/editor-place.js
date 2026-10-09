@@ -634,7 +634,6 @@
 
     return {
       getPlace: function () { return pickedPlace; },
-      hasPlace: function () { return Boolean(pickedPlace); },
       setPlace: function (place) {
         pickedPlace = place || null;
         pickerLngLat = null;
