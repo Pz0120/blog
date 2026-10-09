@@ -440,12 +440,13 @@
       if (pickedPlace.fullName) nameEl.title = pickedPlace.fullName;
       body.appendChild(nameEl);
 
-      var metaParts = [pickedPlace.longitude.toFixed(5) + ', ' + pickedPlace.latitude.toFixed(5), pickedPlace.precision];
-      var area = [pickedPlace.region, pickedPlace.locality]
-        .filter(function (value, index, list) { return value && list.indexOf(value) === index; })
-        .join(' · ');
-      if (area && area !== pickedPlace.name) metaParts.unshift(area);
-      body.appendChild(el('span', 'zg-picked-meta', metaParts.join(' · ')));
+      /* 副行只放坐标和精度。
+         不再重复省市 —— 主行的短名里已经带了城市（“天门市 · 西湖”），
+         副行再写一遍“湖北省 · 天门市”就是同一条信息的第二次出现。
+         要核对周边环境，悬停看完整地址。 */
+      body.appendChild(el('span', 'zg-picked-meta',
+        pickedPlace.longitude.toFixed(5) + ', ' + pickedPlace.latitude.toFixed(5)
+        + ' · ' + pickedPlace.precision));
 
       var clearBtn = el('button', 'zg-link-btn', '清除');
       clearBtn.type = 'button';
