@@ -1,0 +1,145 @@
+/* 后台导航页（/admin/）
+   只做入口聚合：三张卡片通向三个网页版编辑器，外加一排线上页面快捷链接。
+   不重复任何编辑器样式，编辑器的 CSS 由 newlaodao/newsuibi/newzouguo 各自负责。 */
+
+.admin-hub {
+  padding-bottom: 40px;
+}
+
+.admin-hub .pagetitle {
+  margin-bottom: 8px;
+}
+
+.admin-hub-note {
+  font-size: 0.8rem;
+  line-height: 1.7;
+  text-align: center;
+  color: var(--text-info-color);
+  margin: 0 auto 28px;
+  max-width: 520px;
+}
+
+.admin-card-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .admin-card-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+}
+
+.admin-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 132px;
+  padding: 18px 18px 16px;
+  border-radius: 16px;
+  background: var(--theme-glass-background);
+  border: 1px solid var(--theme-glass-border);
+  -webkit-backdrop-filter: var(--theme-glass-filter);
+  backdrop-filter: var(--theme-glass-filter);
+  box-shadow: var(--theme-glass-box-shadow);
+  color: var(--text-content-color);
+  transition:
+    transform 0.28s cubic-bezier(0.165, 0.84, 0.44, 1),
+    box-shadow 0.28s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.admin-card-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--theme-subtle-fill);
+  color: var(--text-highlight-color);
+  flex: none;
+}
+
+.admin-card-title {
+  display: block;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.admin-card-desc {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--text-info-color);
+}
+
+.admin-card-go {
+  margin-top: auto;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  color: var(--text-highlight-color);
+  opacity: 0.75;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .admin-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--theme-glass-box-shadow-hover);
+    text-decoration: none;
+  }
+
+  .admin-card:hover .admin-card-go {
+    opacity: 1;
+  }
+}
+
+.admin-card:focus-visible {
+  outline: 2px solid var(--text-highlight-color);
+  outline-offset: 3px;
+}
+
+.admin-links {
+  margin-top: 34px;
+  padding-top: 18px;
+  border-top: 1px solid var(--theme-footer-border);
+}
+
+.admin-links-title {
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  color: var(--text-info-color);
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.admin-links-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.admin-pill {
+  display: inline-block;
+  padding: 5px 13px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  background: var(--theme-subtle-fill);
+  border: 1px solid var(--theme-glass-border);
+  color: var(--text-content-color);
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .admin-pill:hover {
+    color: var(--text-highlight-color);
+    border-color: var(--text-highlight-color);
+    text-decoration: none;
+  }
+}
