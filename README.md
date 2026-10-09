@@ -28,7 +28,7 @@ hugo server
 |---|---|---|
 | 随笔（长文） | `/newsuibi/` | `content/posts/` |
 | 唠叨（短句） | `/newlaodao/` | `content/laodao/` |
-| 走过（地点） | `/newzouguo/` | `content/zouguo/` |
+| 走过（地点） | 在 `/newsuibi/` 里勾选「同时记到走过地图」 | `content/zouguo/` 或文章 front matter 的 `zouguo` 块 |
 | 观影 | — | `assets/data/movies.json`（豆瓣同步） |
 | 书架 | — | `assets/data/books.json`（微信读书同步） |
 

@@ -103,8 +103,7 @@
         repo: {{ default "" (index $repositoryConfig "name") | jsonify | safeJS }},
         branch: {{ default "main" (index $repositoryConfig "branch") | jsonify | safeJS }},
         upyunDomain: {{ default "" (index $publisherConfig "imagebaseurl") | jsonify | safeJS }},
-        {{/* 「同时记到走过地图」要用地图选点，所以这里也要注入地图配置。
-             必须和 newzouguo.html 取同一套值，否则两个编辑器的地图观感会不一致。 */}}
+        {{/* 「同时记到走过地图」要用地图选点，所以这里也要注入地图配置。 */}}
         mapboxToken: {{ default "" $mapboxToken | jsonify | safeJS }},
         mapboxLightStyle: {{ default "mapbox://styles/mapbox/light-v11" (index $mapConfig "mapboxlightstyle") | jsonify | safeJS }},
         mapboxDarkStyle: {{ default "mapbox://styles/mapbox/dark-v11" (index $mapConfig "mapboxdarkstyle") | jsonify | safeJS }},

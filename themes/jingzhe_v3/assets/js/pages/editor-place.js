@@ -9,11 +9,11 @@
  *   · 地图点选           搜索总有误差，最终兜底是让用户在图上直接点
  *   · pickerStyle()     用站点自己的样式，编辑器地图必须和走过页观感一致
  *
- * 注意：editor-zouguo.js 目前仍保留着自己那份副本（它已经上线验证过，这次
- * 刻意没去动它）。两处逻辑将来应该合并到这里，改行为时记得两边都要看。
+ * 注意：这段逻辑原本只住在 editor-zouguo.js 里。独立的走过编辑器下线后，
+ * 这里成了唯一一份实现 —— 改行为时不会再有两份要同步。
  *
  * 产出统一的 place 结构，字段与上游 docs/zouguo-data-contract.md 对齐。
- * 样式复用 newzouguo.css 里已有的 .zg-* 类，不再新写一套。
+ * 样式在 place-picker.css。
  */
 (function (global) {
   'use strict';

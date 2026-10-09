@@ -1,6 +1,6 @@
 /* 后台导航页（/admin/）
-   只做入口聚合：三张卡片通向三个网页版编辑器，外加一排线上页面快捷链接。
-   不重复任何编辑器样式，编辑器的 CSS 由 newlaodao/newsuibi/newzouguo 各自负责。 */
+   只做入口聚合：卡片通向各网页版编辑器，外加一排线上页面快捷链接。
+   卡片样式不重复任何编辑器，编辑器的 CSS 由各自的文件负责。 */
 
 .admin-hub {
   padding-bottom: 40px;
@@ -27,7 +27,8 @@
 
 @media (min-width: 640px) {
   .admin-card-grid {
-    grid-template-columns: repeat(3, 1fr);
+    /* auto-fit 而不是写死列数：加减卡片都不用回来改 CSS */
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 14px;
   }
 }

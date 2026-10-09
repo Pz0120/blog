@@ -1,46 +1,15 @@
 @charset "UTF-8";
 
 /* ==========================================================================
-   走过编辑器 / newzouguo.css
-   复用 newlaodao.css 里的全局类（.admin-login-input / .admin-btn /
-   .admin-publish-card / .admin-textarea / .admin-actions / .admin-immersive-wrapper），
-   这里只写「地点选择」相关的部分。
+   地点选择器 / place-picker.css
+   供 editor-place.js 使用（随笔编辑器里「同时记到走过地图」那块）。
+   原来这些规则住在 newzouguo.css 里 —— 独立的走过编辑器下线后，
+   只有选址相关的部分还有用，就整块搬到这里。
    ========================================================================== */
-
-.page-zouguo-admin .admin-immersive-wrapper {
-  padding-bottom: 60px;
-}
-
-.zg-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  padding: 18px 18px 4px;
-}
-
-.zg-step {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.zg-label {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--text-content-color);
-  letter-spacing: 0.02em;
-}
-
-.zg-hint {
-  font-weight: 400;
-  color: var(--text-info-color);
-  font-size: 0.76rem;
-}
 
 /* --- 输入控件（跟站点一致的圆角与描边）--------------------------------- */
 
-.zg-input,
-.zg-textarea {
+.zg-input {
   width: 100%;
   box-sizing: border-box;
   padding: 10px 12px;
@@ -55,19 +24,12 @@
   appearance: none;
 }
 
-.zg-textarea {
-  resize: vertical;
-  min-height: 92px;
-}
-
-.zg-input:focus,
-.zg-textarea:focus {
+.zg-input:focus {
   outline: 2px solid var(--text-highlight-color);
   outline-offset: 1px;
 }
 
-.zg-input::placeholder,
-.zg-textarea::placeholder {
+.zg-input::placeholder {
   color: var(--text-info-color);
 }
 
@@ -183,7 +145,12 @@
   border-bottom: 0;
 }
 
-.zg-result:hover,
+@media (hover: hover) and (pointer: fine) {
+  .zg-result:hover {
+    background-color: var(--theme-subtle-fill);
+  }
+}
+
 .zg-result:focus-visible {
   background-color: var(--theme-subtle-fill);
 }
@@ -203,146 +170,52 @@
 /* --- 已选地点 ---------------------------------------------------------- */
 
 .zg-picked {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   border: 1px solid var(--theme-glass-border);
   border-radius: 12px;
   overflow: hidden;
   background-color: var(--theme-subtle-fill);
 }
 
-.zg-map-preview {
-  display: block;
-  width: 100%;
-  aspect-ratio: 2 / 1;
-  min-height: 180px;
-  border-radius: 12px;
-  overflow: hidden;
-  background-color: var(--theme-subtle-fill);
+.zg-picked[hidden] {
+  display: none;
 }
 
 .zg-picked-body {
+  flex: 1 1 auto;
+  min-width: 0;
   padding: 11px 13px 13px;
 }
 
+.zg-picked > .zg-link-btn {
+  flex: 0 0 auto;
+  padding-right: 13px;
+}
+
 .zg-picked-name {
+  display: block;
   margin: 0;
   font-size: 0.88rem;
   font-weight: 600;
   line-height: 1.45;
   color: var(--text-content-color);
+  word-break: break-word;
 }
 
 .zg-picked-meta {
-  margin: 3px 0 7px;
+  display: block;
+  margin: 3px 0 0;
   font-family: "GeistMono", var(--font-stack-system);
   font-size: 0.72rem;
   color: var(--text-info-color);
 }
 
-/* --- 图片 -------------------------------------------------------------- */
-
-.zg-upload {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  align-self: flex-start;
-  padding: 8px 14px;
-  border: 1px dashed var(--theme-glass-border);
-  border-radius: 10px;
-  background-color: var(--theme-subtle-fill);
-  color: var(--text-info-color);
-  font-size: 0.82rem;
-  cursor: pointer;
-}
-
-.zg-images {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
-  gap: 8px;
-}
-
-.zg-images:empty {
-  display: none;
-}
-
-.zg-image {
-  position: relative;
-  aspect-ratio: 1;
-  border-radius: 8px;
-  overflow: hidden;
-  background-color: var(--theme-subtle-fill);
-}
-
-.zg-image img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.zg-image-remove {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  width: 22px;
-  height: 22px;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background-color: rgba(0, 0, 0, 0.55);
-  color: #fff;
-  font-size: 14px;
-  line-height: 22px;
-  cursor: pointer;
-}
-
-/* 发布结果：贴在按钮上方，必须有足够对比度，不能只是淡灰 */
-.zg-submit-status {
-  margin: 0;
-  padding: 0 18px;
-  min-height: 1.2em;
-  font-size: 0.82rem;
-  line-height: 1.55;
-  color: var(--text-content-color);
-}
-
-.zg-submit-status:empty {
-  display: none;
-}
-
-.zg-submit-status.is-error {
-  color: var(--theme-status-error);
-  font-weight: 500;
-}
-
-.zg-submit-status.is-ok {
-  color: var(--text-highlight-color);
-  font-weight: 500;
-}
-
-/* --- 提交区 ------------------------------------------------------------ */
-
-.zg-submit-row {
-  display: flex;
-  gap: 10px;
-  padding: 12px 18px 22px;
-}
-
-.zg-submit-row .admin-btn {
-  flex: 1 1 auto;
-}
-
-.zg-credit {
-  margin: 0;
-  padding: 0 18px 24px;
-  font-size: 0.7rem;
-  color: var(--text-info-color);
-  text-align: center;
-}
-
 /* --- 地图选点（搜不到的地方手动拖点）----------------------------------- */
 
 .zg-picker {
-  margin-top: 10px;
   border: 1px solid var(--theme-glass-border);
   border-radius: 12px;
   overflow: hidden;
@@ -373,15 +246,6 @@
 }
 
 @media (max-width: 640px) {
-  .zg-form {
-    padding: 14px 14px 2px;
-    gap: 17px;
-  }
-
-  .zg-submit-row {
-    padding: 14px 14px 20px;
-  }
-
   .zg-picker-map {
     height: 260px;
   }
