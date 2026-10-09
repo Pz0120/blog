@@ -51,15 +51,17 @@ RSSNoContent = false
 [services.publisher]
   workerUrl = "https://jingzhe-publisher.peixiaoyi88.workers.dev"
   draftUrl = ""
-  imageBaseUrl = "https://pub-9486120c22024bfabb4ce77614684508.r2.dev"
+  imageBaseUrl = "https://img.peixy.xyz"
 
 [services.images]
   # 这里的图片缩放（/cdn-cgi/image/）需要 zone 开通 Cloudflare Image Resizing，目前没开，
   # 所以 enabled 保持 false。没有它的时候走下面的「按命名约定推导」：
-  # 编辑器上传文章图时会顺手多传一张 640px 的小图，名字加 _thumb 后缀，
-  # 卡片和列表就用那张，前端 onerror 自动兜回原图（老图没小图也不受影响）。
+  # 编辑器上传文章图时会顺手多传 _thumb / _large 两档派生图，
+  # 卡片和列表就用那两档，前端 onerror 自动兜回原图（老图没派生图也不受影响）。
   enabled = false
-  sourceOrigin = "https://pub-9486120c22024bfabb4ce77614684508.r2.dev"
+  # 图片走自己的域名：R2 的 pub-xxx.r2.dev 是「仅供开发测试」的直连域名，
+  # 不走 CDN 缓存也有限流。img.peixy.xyz 挂到了同一个桶上，走 Cloudflare 缓存。
+  sourceOrigin = "https://img.peixy.xyz"
   deliveryOrigin = ""
   thumbnailSuffix = "_thumb"
   largeSuffix = "_large"
@@ -67,6 +69,12 @@ RSSNoContent = false
   smallWidth = 640
   largeWidth = 960
   quality = 75
+
+  # 历史内容里存的还是旧的 r2.dev 直连地址，渲染时按这张表换域名 ——
+  # 这样老图也立刻走 CDN，不用去改任何一篇已经发出去的内容。
+  # 注意：TOML 里这张表必须放在上面的标量之后。
+  [services.images.imageOriginMap]
+    "https://pub-9486120c22024bfabb4ce77614684508.r2.dev" = "https://img.peixy.xyz"
 
 [services.exercise]
   # 不要在仓库里写 token：GitHub 推送保护会把它当密钥直接拒绝推送（GH013），

@@ -1,5 +1,15 @@
 {{- $src := strings.TrimSpace (printf "%v" .src) -}}
 {{- $config := site.Params.services.images | default (dict) -}}
+
+{{- /* 历史内容里的图片地址还指向 R2 的 r2.dev 直连域名（那个域名不走 CDN 缓存、
+       也有限流）。先按 imageOriginMap 换成自己的 CDN 域名，后面的「同源判断」
+       和「派生图推导」就都能正常工作了 —— 不用去改任何一篇已发布的内容。 */ -}}
+{{- range $from, $to := ($config.imageOriginMap | default dict) -}}
+  {{- if strings.HasPrefix $src $from -}}
+    {{- $src = printf "%s%s" (replaceRE "/+$" "" $to) (strings.TrimPrefix $from $src) -}}
+  {{- end -}}
+{{- end -}}
+
 {{- $sourceOrigin := replaceRE "/+$" "" (default "" $config.sourceOrigin) -}}
 {{- $deliveryOrigin := replaceRE "/+$" "" (default $sourceOrigin $config.deliveryOrigin) -}}
 {{- $thumbWidth := int (default 128 $config.thumbWidth) -}}
