@@ -15,8 +15,8 @@
 
 {{- if not $books -}}
   <p class="books-empty">
-    书架还是空的。运行 <code>python sync_books.py</code> 从微信读书同步，
-    或手动写进 <code>assets/data/books.json</code>。
+    书架还是空的。微信读书书架由 Cloudflare 定时同步（每天 04:30）自动写入
+    <code>assets/data/books.json</code>，也可以手动编辑该文件。
   </p>
 {{- else -}}
 
@@ -64,7 +64,6 @@
       {{- end -}}
 
       {{- $shelfName := default "未归类" $book.shelf -}}
-      {{- $light := default "" $book.dominant_color -}}
 
       {{- $authorSuffix := "" -}}
       {{- with $book.author -}}
@@ -73,11 +72,10 @@
       {{- $statusLabel := default "想读" (index $statusLabels $status) -}}
       {{- $label := printf "《%s》%s，%s" $book.title $authorSuffix $statusLabel -}}
 
-      {{- /* 进度条的填充色用封面提取出来的主色；没有就退回强调色 */ -}}
+      {{- /* 进度条填充色统一用主题强调色。
+             以前取自封面主色，但那个颜色要靠 Pillow 解码封面才能算出来，
+             搬上 Cloudflare 定时同步后没有图片解码器，就去掉了。 */ -}}
       {{- $barStyle := printf "--book-progress:%d%%;" $progress -}}
-      {{- with $light -}}
-        {{- $barStyle = printf "%s--book-color:%s;" $barStyle . -}}
-      {{- end -}}
 
     <li class="books-grid-item" data-shelf="{{ $shelfName }}">
       <a class="book-tile"

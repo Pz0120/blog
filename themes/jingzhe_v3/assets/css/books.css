@@ -165,7 +165,7 @@
   bottom: 0;
   left: 0;
   width: var(--book-progress, 0%);
-  background-color: var(--book-color, var(--text-highlight-color));
+  background-color: var(--text-highlight-color);
 }
 
 /* 书名 / 作者 / 状态 —— 三行，每行都是单行截断、绝不换行。

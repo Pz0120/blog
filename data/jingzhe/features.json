@@ -11,11 +11,19 @@
   "dataCatalog": {
     "assets/data/movies.json": {
       "role": "public-source",
-      "writer": "sync_movies.py",
+      "writer": "jingzhe-sync Worker (Cloudflare Cron，每天 UTC 20:00)",
       "readers": ["Hugo movies page"],
       "public": true,
       "generated": false,
       "schema": "schemas/data/movie.schema.json"
+    },
+    "assets/data/books.json": {
+      "role": "public-source",
+      "writer": "jingzhe-sync Worker (Cloudflare Cron，每天 UTC 20:30)",
+      "readers": ["Hugo books page"],
+      "public": true,
+      "generated": false,
+      "schema": "schemas/data/book.schema.json"
     },
     "assets/data/exercise/activities.json": {
       "role": "public-read-model",

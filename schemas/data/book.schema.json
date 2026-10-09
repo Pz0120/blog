@@ -79,11 +79,11 @@
       },
       "dominant_color": {
         "type": "string",
-        "description": "封面主色调（浅色模式书脊底色）。对应微信读书 coverBoxInfo.dominate_color.hex"
+        "description": "已废弃：封面主色需要本地解码封面图，CF 定时同步无法计算，不再写入。进度条改用主题强调色"
       },
-      "dominant_color_dark": {
-        "type": "string",
-        "description": "深色模式书脊底色。建议取 coverBoxInfo.colors 里 key 为 1/4、1/6、1/8 的深色端之一；缺失时回退 dominant_color"
+      "readUpdateTime": {
+        "type": "number",
+        "description": "微信读书的阅读时间戳。同步时只对时间戳变过的书查 /book/getprogress，避免每本书一次子请求"
       },
       "palette": {
         "type": "array",
