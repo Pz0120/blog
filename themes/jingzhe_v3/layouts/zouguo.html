@@ -33,6 +33,13 @@
 
 <link rel="dns-prefetch" href="{{ $mapboxApiOrigin }}">
 <link rel="preconnect" href="{{ $mapboxApiOrigin }}" crossorigin>
+{{- /* mapbox-gl.js 有 600KB 且来自另一个域名，先把 DNS 和 TLS 握好，
+       否则要等它走完一轮往返才开始下载。 */ -}}
+{{- $mapboxJsURL := urls.Parse $mapboxJsUrl -}}
+{{- if $mapboxJsURL.Host }}
+<link rel="dns-prefetch" href="{{ printf "%s://%s" $mapboxJsURL.Scheme $mapboxJsURL.Host }}">
+<link rel="preconnect" href="{{ printf "%s://%s" $mapboxJsURL.Scheme $mapboxJsURL.Host }}" crossorigin>
+{{- end }}
 <link rel="stylesheet" href="{{ $mapboxCssUrl }}">
 
 <main class="zouguo-page"
@@ -138,7 +145,11 @@
                   {{- if lt $imageIndex 3 -}}
                     <span class="zouguo-entry-photo{{ if eq $imageIndex 0 }} is-primary{{ else if eq $imageIndex 1 }} is-secondary{{ else }} is-tertiary{{ end }}"
                           data-image-index="{{ $imageIndex }}">
-                      <img src="{{ $image.original | safeURL }}"
+                      {{- /* 卡片槽位只有约 390px，用 640px 的小图；老图没有小图时
+                             onerror 会自动换回原图，不会出现破图。 */ -}}
+                      <img src="{{ $image.disp | safeURL }}"
+                           {{ if ne $image.disp $image.original }}data-original="{{ $image.original | safeURL }}"
+                           onerror="this.onerror=null;this.src=this.dataset.original||this.src;"{{ end }}
                            {{ if $image.transformed }}srcset="{{ $image.small | safeURL }} {{ $image.smallWidth }}w, {{ $image.large | safeURL }} {{ $image.largeWidth }}w"
                            sizes="(min-width: 861px) 390px, calc(100vw - 50px)"{{ end }}
                            alt="{{ default (printf "%s的图片" $placeName) $image.alt }}"

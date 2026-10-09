@@ -4,6 +4,19 @@
   const root = document.getElementById('zouguo-app');
   const dataNode = document.getElementById('zouguo-feed-data');
   const boundaryDataUrl = root?.dataset.boundaryUrl || '';
+
+  /* 一进页面就把这份边界数据下载起来。
+     它只有 49KB，但原来要等地图完全加载好才去取，白白串行了一秒多（实测 1454ms）。
+     提前发起后，它和 mapbox-gl、样式、字体并行；loadBoundaries 只负责 await 结果。
+     注意：必须自带一个空 catch，否则在 loadBoundaries 接手之前会触发 unhandledrejection。 */
+  let boundaryFetchPromise = null;
+  if (boundaryDataUrl) {
+    boundaryFetchPromise = fetch(boundaryDataUrl, { credentials: 'same-origin' }).then(response => {
+      if (!response.ok) throw new Error(`Boundary request failed: ${response.status}`);
+      return response.json();
+    });
+    boundaryFetchPromise.catch(() => {});
+  }
   if (!root || !dataNode) return;
 
   let payload;
@@ -995,12 +1008,10 @@
   };
 
   const loadBoundaries = async () => {
-    if (!boundaryDataUrl) return;
+    if (!boundaryDataUrl || !boundaryFetchPromise) return;
 
     try {
-      const response = await fetch(boundaryDataUrl, { credentials: 'same-origin' });
-      if (!response.ok) throw new Error(`Boundary request failed: ${response.status}`);
-      const collection = asFeatureCollection(await response.json());
+      const collection = asFeatureCollection(await boundaryFetchPromise);
       boundaryCollections = {
         country: { type: 'FeatureCollection', features: collection.features.filter(feature => feature.properties?.level === 'country') },
         province: { type: 'FeatureCollection', features: collection.features.filter(feature => feature.properties?.level === 'province') },

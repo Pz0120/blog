@@ -54,9 +54,15 @@ RSSNoContent = false
   imageBaseUrl = "https://pub-9486120c22024bfabb4ce77614684508.r2.dev"
 
 [services.images]
+  # 这里的图片缩放（/cdn-cgi/image/）需要 zone 开通 Cloudflare Image Resizing，目前没开，
+  # 所以 enabled 保持 false。没有它的时候走下面的「按命名约定推导」：
+  # 编辑器上传文章图时会顺手多传一张 640px 的小图，名字加 _thumb 后缀，
+  # 卡片和列表就用那张，前端 onerror 自动兜回原图（老图没小图也不受影响）。
   enabled = false
-  sourceOrigin = ""
+  sourceOrigin = "https://pub-9486120c22024bfabb4ce77614684508.r2.dev"
   deliveryOrigin = ""
+  thumbnailSuffix = "_thumb"
+  largeSuffix = "_large"
   thumbWidth = 128
   smallWidth = 640
   largeWidth = 960

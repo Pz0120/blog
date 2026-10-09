@@ -268,55 +268,133 @@
     });
   }
 
-  function compressImage(file) {
+  /* 把文件解码成一个 Image。
+     HEIC 要先转 JPEG —— 这一步很慢，所以只做一次，两个尺寸共用同一张解码结果。 */
+  function decodeImage(file) {
     return new Promise(function (resolve, reject) {
-      // HEIC 先转 JPEG，再走正常压缩
-      if (isHeic(file)) {
-        convertHeic(file).then(function (jpeg) { compressImage(jpeg).then(resolve).catch(reject); }).catch(reject);
-        return;
-      }
-      var reader = new global.FileReader();
-      reader.onload = function (event) {
-        var image = new global.Image();
-        image.onload = function () {
-          var canvas = global.document.createElement('canvas');
-          var width = image.width;
-          var height = image.height;
-          var maximum = 1500;
-          if (width > height) {
-            if (width > maximum) { height *= maximum / width; width = maximum; }
-          } else if (height > maximum) { width *= maximum / height; height = maximum; }
-          canvas.width = width;
-          canvas.height = height;
-          canvas.getContext('2d').drawImage(image, 0, 0, width, height);
-          canvas.toBlob(function (blob) {
-            if (blob) resolve(blob); else reject(new Error('IMAGE_COMPRESSION_FAILED'));
-          }, 'image/webp', 0.75);
+      var source = file;
+      var ready = isHeic(file)
+        ? convertHeic(file).then(function (jpeg) { source = jpeg; })
+        : Promise.resolve();
+      ready.then(function () {
+        var reader = new global.FileReader();
+        reader.onload = function (event) {
+          var image = new global.Image();
+          image.onload = function () { resolve(image); };
+          image.onerror = reject;
+          image.src = event.target.result;
         };
-        image.onerror = reject;
-        image.src = event.target.result;
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
+        reader.onerror = reject;
+        reader.readAsDataURL(source);
+      }).catch(reject);
     });
   }
 
-  async function uploadImage(file, config, folder) {
-    const image = await compressImage(file);
-    const filename = `${folder}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.webp`;
-    const response = await secureFetch(`${config.workerUrl}/api/upload?name=${filename}`, {
-      method: 'POST',
-      body: image
+  /* 算等比缩放后的目标尺寸。
+     两种约束都保留：maxEdge 限制最长边（用于原图，保证总像素不失控），
+     maxWidth 限制宽度（用于派生图，因为卡片和封面的槽位是按宽度定的，
+     和 params.toml 里的 smallWidth / largeWidth 语义一致）。 */
+  function targetSize(image, options) {
+    var width = image.width;
+    var height = image.height;
+    if (options.maxWidth) {
+      if (width > options.maxWidth) {
+        height = height * options.maxWidth / width;
+        width = options.maxWidth;
+      }
+    } else if (options.maxEdge) {
+      if (width > height) {
+        if (width > options.maxEdge) { height = height * options.maxEdge / width; width = options.maxEdge; }
+      } else if (height > options.maxEdge) {
+        width = width * options.maxEdge / height;
+        height = options.maxEdge;
+      }
+    }
+    return { width: Math.max(1, Math.round(width)), height: Math.max(1, Math.round(height)) };
+  }
+
+  function drawToWebp(image, options, quality) {
+    return new Promise(function (resolve, reject) {
+      var size = targetSize(image, options);
+      var canvas = global.document.createElement('canvas');
+      canvas.width = size.width;
+      canvas.height = size.height;
+      canvas.getContext('2d').drawImage(image, 0, 0, size.width, size.height);
+      canvas.toBlob(function (blob) {
+        if (blob) resolve(blob); else reject(new Error('IMAGE_COMPRESSION_FAILED'));
+      }, 'image/webp', quality);
     });
+  }
+
+  const FULL_MAX_EDGE = 1500;
+  const FULL_QUALITY = 0.75;
+  /* 两档派生图，按宽度缩。卡片槽位（走过时间线约 390px、首页约 252px）用 _thumb；
+     列表页大封面是 2:1、显示宽 800px，用 _large 才不至于发虚。 */
+  const THUMB_WIDTH = 640;
+  const LARGE_WIDTH = 960;
+  const THUMB_QUALITY = 0.72;
+  /* 后缀必须与 params.toml 的 services.images.thumbnailSuffix / largeSuffix 一致，
+     主题靠它们推导地址。改一处就要改另一处。 */
+  const THUMB_SUFFIX = '_thumb';
+  const LARGE_SUFFIX = '_large';
+
+  function compressImage(file) {
+    return decodeImage(file).then(function (image) {
+      return drawToWebp(image, { maxEdge: FULL_MAX_EDGE }, FULL_QUALITY);
+    });
+  }
+
+  function uploadOne(config, filename, blob) {
+    return secureFetch(`${config.workerUrl}/api/upload?name=${filename}`, {
+      method: 'POST',
+      body: blob
+    });
+  }
+
+  function publicUrl(config, filename, payload) {
+    if (payload && payload.url) return payload.url;
+    return `${String(config.upyunDomain || '').replace(/\/$/, '')}/${filename}`;
+  }
+
+  /* 派生图失败不能连累主图 —— 前端会自动回退到原图 */
+  async function uploadVariant(config, filename, blob) {
+    try {
+      const response = await uploadOne(config, filename, blob);
+      if (!response.ok) return '';
+      let payload = {};
+      try {
+        payload = await response.json();
+      } catch (_error) {}
+      return publicUrl(config, filename, payload);
+    } catch (_error) {
+      return '';
+    }
+  }
+
+  async function uploadImage(file, config, folder) {
+    /* 只解码一次：HEIC 转 JPEG 很慢，两个尺寸共用同一张解码结果 */
+    const image = await decodeImage(file);
+    const stamp = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const filename = `${folder}/${stamp}.webp`;
+
+    const full = await drawToWebp(image, { maxEdge: FULL_MAX_EDGE }, FULL_QUALITY);
+    const response = await uploadOne(config, filename, full);
     if (!response.ok) throw new Error(`UPLOAD_${response.status || 'FAILED'}`);
     let payload = {};
     try {
       payload = await response.json();
     } catch (_error) {}
-    return {
-      filename,
-      url: payload.url || `${String(config.upyunDomain || '').replace(/\/$/, '')}/${filename}`
-    };
+    const url = publicUrl(config, filename, payload);
+
+    const thumb = await drawToWebp(image, { maxWidth: THUMB_WIDTH }, THUMB_QUALITY);
+    const thumbFilename = `${folder}/${stamp}${THUMB_SUFFIX}.webp`;
+    const thumbUrl = await uploadVariant(config, thumbFilename, thumb);
+
+    const large = await drawToWebp(image, { maxWidth: LARGE_WIDTH }, THUMB_QUALITY);
+    const largeFilename = `${folder}/${stamp}${LARGE_SUFFIX}.webp`;
+    const largeUrl = await uploadVariant(config, largeFilename, large);
+
+    return { filename, url, thumbUrl, largeUrl };
   }
 
   function renderMarkdown(parser, source, options = {}) {
