@@ -106,3 +106,66 @@
   grid-template-columns: repeat(5, 1fr);
   max-width: 500px;
 }
+
+/* ------------------------------------------------------------------ */
+/* 同时记到「走过」地图                                                */
+/* 内部的地名搜索 / 结果列表 / 地图选点复用 newzouguo.css 的 .zg-* 样式， */
+/* 这里只管外面这个开关盒子和时间输入。                                 */
+/* ------------------------------------------------------------------ */
+
+.write-zouguo {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--theme-footer-border);
+}
+
+.write-zouguo-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.write-zouguo-toggle input {
+  margin: 0;
+  cursor: pointer;
+}
+
+.write-zouguo-body {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.write-zouguo-body[hidden] {
+  display: none;
+}
+
+.write-zouguo-when {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.82rem;
+  color: var(--text-info-color);
+}
+
+.write-zouguo-when label {
+  flex: none;
+}
+
+/* 时间输入借用 .zg-input 的边框和配色，但宽度不用撑满 */
+.write-zouguo-when .zg-input {
+  width: auto;
+  min-width: 200px;
+  flex: none;
+}
+
+.write-zouguo-hint {
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: var(--text-info-color);
+}

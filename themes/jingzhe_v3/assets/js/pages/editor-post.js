@@ -29,7 +29,126 @@
     const postDescEl = $('postDesc');
     const postContentEl = $('postContent');
 
+    /* 「同时记到走过地图」相关节点 */
+    const zouguoToggleEl = $('zouguoToggle');
+    const zouguoPanelEl = $('zouguoPanel');
+    const zouguoWhenEl = $('zouguoWhen');
+    const zouguoPlaceRoot = $('zouguoPlaceRoot');
+
     tagSelector.style.display = 'none';
+
+    /* ==============================================================
+     * 同时记到「走过」地图
+     *
+     * 上游作者支持三种走过来源，这里是第三种（随笔）的网页入口：
+     * 给文章打上「走过」标签，再附一个 zouguo 数据块，这篇文章就会
+     * 同时出现在随笔列表和走过地图上，地图上的标题能点回文章。
+     *
+     * 「走过」标签和数据块必须同时存在 —— 只打标签不给数据块会让
+     * Hugo 构建直接失败，所以下面所有路径都成对处理。
+     * ============================================================== */
+
+    const ZOUGUO_TAG = '走过';
+    let placePicker = null;
+
+    function pad2(value) { return String(value).padStart(2, '0'); }
+
+    /* datetime-local 的 "2026-10-08T14:30" → 带本机时区的 ISO。
+       Hugo 的 time.AsTime 要求结尾是 Z 或 ±HH:MM。 */
+    function isoWithOffset(localValue) {
+        const date = new Date(localValue);
+        if (Number.isNaN(date.getTime())) return '';
+        const offset = -date.getTimezoneOffset();
+        const sign = offset >= 0 ? '+' : '-';
+        const abs = Math.abs(offset);
+        return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`
+            + `T${pad2(date.getHours())}:${pad2(date.getMinutes())}:00`
+            + `${sign}${pad2(Math.floor(abs / 60))}:${pad2(abs % 60)}`;
+    }
+
+    /* 带时区的 ISO → datetime-local 需要的 "YYYY-MM-DDTHH:MM" */
+    function toLocalInputValue(isoValue) {
+        const match = String(isoValue || '').match(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/);
+        return match ? `${match[1]}T${match[2]}` : '';
+    }
+
+    function nowLocalValue() {
+        const d = new Date();
+        return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`
+            + `T${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+    }
+
+    function ensurePlacePicker() {
+        if (placePicker) return placePicker;
+        if (!window.JingzhePlace) {
+            cocoMessage.error('地点选择器没加载出来，刷新页面试试');
+            return null;
+        }
+        placePicker = window.JingzhePlace.create({
+            root: zouguoPlaceRoot,
+            config: CONFIG,
+            hint: '搜地名，或在地图上直接点位置',
+            onChange: () => { scheduleSaveDraft(); dirtyState.mark(); }
+        });
+        return placePicker;
+    }
+
+    function setZouguoEnabled(enabled) {
+        zouguoToggleEl.checked = Boolean(enabled);
+        zouguoPanelEl.hidden = !enabled;
+        if (!enabled) return;
+        if (!zouguoWhenEl.value) zouguoWhenEl.value = nowLocalValue();
+        ensurePlacePicker();
+    }
+
+    /* 收集当前走过状态；勾了但没选地点 → 返回 { error } */
+    function collectZouguo() {
+        if (!zouguoToggleEl || !zouguoToggleEl.checked) return { enabled: false };
+        const picker = ensurePlacePicker();
+        const place = picker ? picker.getPlace() : null;
+        if (!place) {
+            return { enabled: true, error: '勾了「记到走过地图」，但还没选地点 —— 搜一个地名或在地图上点一下' };
+        }
+        const whenLocal = zouguoWhenEl.value || nowLocalValue();
+        const occurredAt = isoWithOffset(whenLocal);
+        if (!occurredAt) {
+            return { enabled: true, error: '「去的日期时间」格式不对，重新选一下' };
+        }
+        return { enabled: true, place, occurredAt };
+    }
+
+    function resetZouguo() {
+        if (!zouguoToggleEl) return;
+        zouguoToggleEl.checked = false;
+        zouguoPanelEl.hidden = true;
+        zouguoWhenEl.value = '';
+        if (placePicker) placePicker.clear();
+    }
+
+    /* 标签串里加/去「走过」，返回新的标签串（保持 # 前缀写法） */
+    function withZouguoTag(tagsValue, wanted) {
+        const tags = String(tagsValue || '')
+            .split(/[,，\s]+/)
+            .map(tag => tag.replace(/^#/, '').trim())
+            .filter(Boolean)
+            .filter(tag => tag !== ZOUGUO_TAG);
+        if (wanted) tags.push(ZOUGUO_TAG);
+        return tags.map(tag => `#${tag}`).join(' ');
+    }
+
+    if (zouguoToggleEl) {
+        zouguoToggleEl.addEventListener('change', () => {
+            setZouguoEnabled(zouguoToggleEl.checked);
+            /* 勾上时自动补标签，取消时自动摘掉 —— 避免出现「有标签没数据块」
+               这种会让构建失败的状态 */
+            postTagsEl.value = withZouguoTag(postTagsEl.value, zouguoToggleEl.checked);
+            scheduleSaveDraft();
+            dirtyState.mark();
+        });
+    }
+    if (zouguoWhenEl) {
+        zouguoWhenEl.addEventListener('input', () => { scheduleSaveDraft(); dirtyState.mark(); });
+    }
 
     function getFormattedTime() {
         const d = new Date();
@@ -67,7 +186,12 @@
         clearTimeout(draftTimer);
         draftTimer = setTimeout(() => {
             // 直接读取缓存好的节点，快如闪电
-            const draft = { title: postTitleEl.value, filename: postFilenameEl.value, slug: postSlugEl.value, tags: postTagsEl.value, desc: postDescEl.value, content: postContentEl.value };
+            const draft = { title: postTitleEl.value, filename: postFilenameEl.value, slug: postSlugEl.value, tags: postTagsEl.value, desc: postDescEl.value, content: postContentEl.value,
+                zouguo: {
+                    enabled: Boolean(zouguoToggleEl && zouguoToggleEl.checked),
+                    when: zouguoWhenEl ? zouguoWhenEl.value : '',
+                    place: placePicker ? placePicker.getPlace() : null
+                } };
             JingzheEditor.saveDraft(CACHE_KEY, draft);
         }, 1000);
     }
@@ -84,6 +208,12 @@
                 if (draft.tags) { postTagsEl.value = draft.tags; loaded = true; }
                 if (draft.desc) { postDescEl.value = draft.desc; postDescEl.dispatchEvent(new Event('input')); loaded = true; }
                 if (draft.content) { postContentEl.value = draft.content; postContentEl.dispatchEvent(new Event('input')); loaded = true; }
+                if (draft.zouguo && draft.zouguo.enabled) {
+                    zouguoWhenEl.value = draft.zouguo.when || '';
+                    setZouguoEnabled(true);
+                    if (draft.zouguo.place && placePicker) placePicker.setPlace(draft.zouguo.place);
+                    loaded = true;
+                }
             } catch(e) {}
         }
         if (loaded) dirtyState.mark();
@@ -276,6 +406,7 @@
             const fmMatch = rawText.match(/^---\n([\s\S]*?)\n---/);
             let title = '', slug = '', tagsStr = '', desc = '', date = '', image = '';
             let bodyContent = rawText;
+            let existingZouguo = null;
 
             if (fmMatch) {
                 const fm = fmMatch[1];
@@ -284,6 +415,7 @@
                 desc = getYamlValue(fm, 'description');
                 date = getYamlValue(fm, 'date');
                 image = getYamlValue(fm, 'image');
+                existingZouguo = JingzheEditor.parseZouguoBlock(fm);
 
                 const tagsBlock = fm.match(/(?:^|\n)tags:\s*([\s\S]*?)(?=\n[A-Za-z0-9_-]+:|$)/);
                 if (tagsBlock) {
@@ -305,6 +437,16 @@
             postTagsEl.value = tagsStr;
             postDescEl.value = desc;
             postContentEl.value = bodyContent;
+
+            /* 回填「走过」：有数据块就把开关打开、地点和时间填回去 */
+            if (existingZouguo) {
+                setZouguoEnabled(true);
+                zouguoWhenEl.value = toLocalInputValue(existingZouguo.occurredAt)
+                    || toLocalInputValue(date) || nowLocalValue();
+                if (placePicker) placePicker.setPlace(existingZouguo.place);
+            } else {
+                resetZouguo();
+            }
 
             postFilenameEl.readOnly = true;
             postFilenameEl.style.opacity = '0.3';
@@ -333,6 +475,7 @@
         postTitleEl.value = ''; postFilenameEl.value = ''; postSlugEl.value = ''; postTagsEl.value = ''; postDescEl.value = ''; postContentEl.value = '';
         postContentEl.style.height = '60vh'; postDescEl.style.height = 'auto';
         window.STATE = { sha: null, path: null, date: null };
+        resetZouguo();
 
         postFilenameEl.readOnly = false;
         postFilenameEl.style.opacity = '0.6';
@@ -393,6 +536,10 @@
         const slugValidation = JingzheEditor.validateSlug(slug);
         if (!slugValidation.ok) return cocoMessage.warning(slugValidation.error);
 
+        /* 走过状态先算出来 —— 有问题就在动网络之前拦住 */
+        const zouguoState = collectZouguo();
+        if (zouguoState.error) return cocoMessage.warning(zouguoState.error);
+
         $('submitBtn').disabled = true;
         let pubMsg = cocoMessage.info("正在推送至 GitHub", 0); // 提示语保持一致
 
@@ -410,13 +557,21 @@
         const safeSlug = slugValidation.value || `${year}${month}${day}-${hour}${min}${sec}`;
         const safeFilename = filenameValidation.value || safeSlug;
         const tags = tagsVal.split(/[,，\s]+/).map(t => t.replace(/^#/, '')).filter(Boolean);
+        /* 标签和数据块必须成对：勾了就保证有「走过」，没勾就保证没有。
+           单留标签会让 Hugo 构建失败（走过聚合校验），单留块会变成没有入口的孤儿数据。 */
+        const finalTags = tags.filter(t => t !== ZOUGUO_TAG);
+        if (zouguoState.enabled) finalTags.push(ZOUGUO_TAG);
+
         const finalMD = JingzheEditor.buildPostMarkdown({
             title,
             date: finalTime,
             slug: safeSlug,
             image: coverUrl,
             description: desc,
-            tags,
+            tags: finalTags,
+            zouguo: zouguoState.enabled
+                ? { occurredAt: zouguoState.occurredAt, place: zouguoState.place }
+                : null,
             content: contentVal
         });
         const path = window.STATE.path ? window.STATE.path : `content/posts/${safeFilename}.md`;

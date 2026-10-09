@@ -94,6 +94,78 @@
     return [...new Set((values || []).map(value => String(value).trim()).filter(Boolean))];
   }
 
+  /* 走过记录在 front matter 里的字段名（YAML 下划线 → 内部驼峰）。
+     与上游 docs/zouguo-data-contract.md 的 place 结构逐字对应。 */
+  const ZOUGUO_PLACE_FIELDS = {
+    id: 'id',
+    name: 'name',
+    longitude: 'longitude',
+    latitude: 'latitude',
+    precision: 'precision',
+    privacy: 'privacy',
+    country: 'country',
+    country_code: 'countryCode',
+    region: 'region',
+    region_code: 'regionCode',
+    locality: 'locality',
+    locality_code: 'localityCode',
+    provider: 'provider',
+    provider_id: 'providerId'
+  };
+
+  const ZOUGUO_NUMBER_FIELDS = new Set(['longitude', 'latitude']);
+
+  /* place 对象 → front matter 里的 zouguo 块（不含开头缩进，调用方拼） */
+  function zouguoLines(zouguo) {
+    if (!zouguo || !zouguo.place || !zouguo.occurredAt) return [];
+    const place = zouguo.place;
+    const lines = ['zouguo:', `  occurred_at: ${zouguo.occurredAt}`, '  place:'];
+    Object.keys(ZOUGUO_PLACE_FIELDS).forEach(yamlKey => {
+      const value = place[ZOUGUO_PLACE_FIELDS[yamlKey]];
+      if (value === undefined || value === null || value === '') {
+        /* 坐标和 id 是必填（Hugo 模板缺了会直接让构建失败），其余空值省略 */
+        if (ZOUGUO_NUMBER_FIELDS.has(yamlKey)) return;
+        return;
+      }
+      if (ZOUGUO_NUMBER_FIELDS.has(yamlKey)) {
+        lines.push(`    ${yamlKey}: ${Number(value)}`);
+      } else {
+        lines.push(`    ${yamlKey}: ${yamlString(value)}`);
+      }
+    });
+    return lines;
+  }
+
+  /* front matter 文本 → { occurredAt, place }，用于「编辑旧文章」时回填 */
+  function parseZouguoBlock(frontMatter) {
+    const blockMatch = String(frontMatter || '')
+      .match(/(?:^|\n)zouguo:[ \t]*\n([\s\S]*?)(?=\n[A-Za-z0-9_-]+:[ \t]*|$)/);
+    if (!blockMatch) return null;
+
+    const block = blockMatch[1];
+    const occurredMatch = block.match(/^[ \t]*occurred_at:[ \t]*(.+)$/m);
+    const place = {};
+    const fieldRe = /^[ \t]+([a-z_]+):[ \t]*(.*)$/gm;
+    let match;
+    while ((match = fieldRe.exec(block)) !== null) {
+      const yamlKey = match[1];
+      if (yamlKey === 'place' || yamlKey === 'occurred_at') continue;
+      const internalKey = ZOUGUO_PLACE_FIELDS[yamlKey];
+      if (!internalKey) continue;
+      const raw = match[2].trim();
+      place[internalKey] = ZOUGUO_NUMBER_FIELDS.has(yamlKey)
+        ? Number(raw)
+        : parseYamlScalar(raw);
+    }
+
+    /* 模板要求这几个字段齐全，缺了就当没写过走过，免得带着半截数据去发布 */
+    if (!occurredMatch || !place.id || !place.name
+      || !Number.isFinite(place.longitude) || !Number.isFinite(place.latitude)) {
+      return null;
+    }
+    return { occurredAt: parseYamlScalar(occurredMatch[1]), place };
+  }
+
   function buildPostMarkdown(values) {
     const lines = [
       '---',
@@ -108,6 +180,7 @@
       lines.push('tags:');
       tags.forEach(tag => lines.push(`  - ${yamlString(tag)}`));
     }
+    lines.push(...zouguoLines(values.zouguo));
     lines.push('---', '');
     return `${lines.join('\n')}\n${String(values.content || '')}`;
   }
@@ -283,6 +356,8 @@
     validateFilename,
     validateSlug,
     buildPostMarkdown,
+    zouguoLines,
+    parseZouguoBlock,
     buildLaodaoMarkdown,
     createDirtyTracker,
     fetchTagTitles,

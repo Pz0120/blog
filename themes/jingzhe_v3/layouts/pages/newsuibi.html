@@ -29,6 +29,24 @@
             </div>
         </div>
 
+        {{/* 顺带记到走过地图：勾上之后这篇文章会带「走过」标签和 zouguo 数据块，
+            于是同时出现在随笔列表和走过地图上（点地图上的标题能跳回这篇文章）。
+            这是上游作者本来就支持的第三种走过来源，这里是给它补一个网页入口。 */}}
+        <div class="write-zouguo" id="zouguoBlock">
+            <label class="write-zouguo-toggle">
+                <input type="checkbox" id="zouguoToggle">
+                <span>同时记到「走过」地图</span>
+            </label>
+            <div class="write-zouguo-body" id="zouguoPanel" hidden>
+                <div class="write-zouguo-when">
+                    <label for="zouguoWhen">去的日期时间</label>
+                    <input type="datetime-local" id="zouguoWhen" class="zg-input">
+                    <span class="write-zouguo-hint">补记以前去过的地方，这里填当时的时间</span>
+                </div>
+                <div id="zouguoPlaceRoot"></div>
+            </div>
+        </div>
+
         <div class="admin-publish-footer admin-publish-bar" id="stickyToolbar">
             <div class="admin-toolbar">
                 <div class="admin-icon-btn" title="插入小标题" onclick="wrapText('### ', '', '输入小标题')">
@@ -76,14 +94,24 @@
 
 {{- $publisherConfig := site.Params.services.publisher | default dict -}}
 {{- $repositoryConfig := site.Params.repository | default dict -}}
+{{- $mapConfig := site.Params.services.exercise | default dict -}}
+{{- $mapboxToken := or (index $mapConfig "mapboxtoken") (os.Getenv "MAPBOX_TOKEN") -}}
 <script>
     window.JINGZHE_EDITOR_CONFIG = {
         workerUrl: {{ default "" (index $publisherConfig "workerurl") | jsonify | safeJS }},
         owner: {{ default "" (index $repositoryConfig "owner") | jsonify | safeJS }},
         repo: {{ default "" (index $repositoryConfig "name") | jsonify | safeJS }},
         branch: {{ default "main" (index $repositoryConfig "branch") | jsonify | safeJS }},
-        upyunDomain: {{ default "" (index $publisherConfig "imagebaseurl") | jsonify | safeJS }}
+        upyunDomain: {{ default "" (index $publisherConfig "imagebaseurl") | jsonify | safeJS }},
+        {{/* 「同时记到走过地图」要用地图选点，所以这里也要注入地图配置。
+             必须和 newzouguo.html 取同一套值，否则两个编辑器的地图观感会不一致。 */}}
+        mapboxToken: {{ default "" $mapboxToken | jsonify | safeJS }},
+        mapboxLightStyle: {{ default "mapbox://styles/mapbox/light-v11" (index $mapConfig "mapboxlightstyle") | jsonify | safeJS }},
+        mapboxDarkStyle: {{ default "mapbox://styles/mapbox/dark-v11" (index $mapConfig "mapboxdarkstyle") | jsonify | safeJS }},
+        mapboxCssUrl: {{ default "" (index $mapConfig "mapboxcssurl") | jsonify | safeJS }},
+        mapboxJsUrl: {{ default "" (index $mapConfig "mapboxjsurl") | jsonify | safeJS }}
     };
 </script>
+{{ partial "jingzhe/script.html" (dict "path" "js/pages/editor-place.js" "defer" true) }}
 {{ partial "jingzhe/script.html" (dict "path" "js/pages/editor-post.js" "defer" true) }}
 {{ end }}
