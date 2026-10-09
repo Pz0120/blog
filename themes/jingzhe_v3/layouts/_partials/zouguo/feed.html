@@ -14,13 +14,26 @@
 {{- end -}}
 
 {{- $items := slice -}}
+{{- $skipped := slice -}}
 {{- range $source := $sources -}}
   {{- $page := $source.page -}}
   {{- $sourceType := $source.sourceType -}}
   {{- $block := index $page.Params "zouguo" -}}
+
+  {{- /* 打了「走过」标签、却没有 zouguo 数据块 —— 跳过这一条，不能让整个构建失败。
+         这里刻意既不用 errorf 也不用 warnf：构建带 --panicOnWarning，
+         任何警告都会让整站停止发布，而作者那边只看到「发布成功」，
+         完全不知道什么都没上线（这个坑真踩过：2026-10-09 一条唠叨把构建挂了，
+         之后所有内容都发不出去）。跳过的条目记进 $skipped，随 feed 一起输出，
+         需要排查时看数据即可。 */ -}}
   {{- if not (and $block (isset $block "occurred_at") (isset $block "place")) -}}
-    {{- errorf "走过聚合失败：%s 是 %s 来源，但缺少 zouguo.occurred_at 或 zouguo.place" $page.File.Path $sourceType -}}
+    {{- $skipped = $skipped | append (dict
+      "path" (printf "%v" $page.File.Path)
+      "sourceType" $sourceType
+      "reason" "缺少 zouguo.occurred_at 或 zouguo.place") -}}
+    {{- continue -}}
   {{- end -}}
+
   {{- $placeParams := index $block "place" -}}
   {{- if not (and
     (isset $placeParams "id")
@@ -29,7 +42,11 @@
     (isset $placeParams "latitude")
     (isset $placeParams "precision")
     (isset $placeParams "country_code")) -}}
-    {{- errorf "走过聚合失败：%s 的 zouguo.place 缺少必填地点字段" $page.File.Path -}}
+    {{- $skipped = $skipped | append (dict
+      "path" (printf "%v" $page.File.Path)
+      "sourceType" $sourceType
+      "reason" "zouguo.place 缺少必填地点字段") -}}
+    {{- continue -}}
   {{- end -}}
 
   {{- $occurredAt := (time.AsTime (index $block "occurred_at")).Format "2006-01-02T15:04:05Z07:00" -}}
@@ -118,4 +135,5 @@
   "schemaVersion" 2
   "generatedAt" (now.Format "2006-01-02T15:04:05Z07:00")
   "items" $items
+  "skipped" $skipped
 ) -}}
