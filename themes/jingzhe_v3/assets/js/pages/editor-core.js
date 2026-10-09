@@ -160,30 +160,64 @@
     return [...new Set(titles)];
   }
 
+  /* HEIC 支持：iPhone 默认拍摄格式，浏览器原生无法解码。
+     用 heic2any（WASM）在浏览器里转成 JPEG，再走正常的压缩流程。
+     库按需懒加载——非 HEIC 用户不用下载这 200KB。 */
+  var heic2anyPromise = null;
+  function loadHeic2any() {
+    if (heic2anyPromise) return heic2anyPromise;
+    heic2anyPromise = new Promise(function (resolve, reject) {
+      if (typeof global.heic2any !== 'undefined') { resolve(); return; }
+      var script = global.document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js';
+      script.onload = function () { resolve(); };
+      script.onerror = function () { reject(new Error('HEIC 转换库加载失败')); };
+      global.document.head.appendChild(script);
+    });
+    return heic2anyPromise;
+  }
+
+  function isHeic(file) {
+    var t = (file.type || '').toLowerCase();
+    if (t === 'image/heic' || t === 'image/heif') return true;
+    var name = (file.name || '').toLowerCase();
+    return name.endsWith('.heic') || name.endsWith('.heif');
+  }
+
+  function convertHeic(file) {
+    return loadHeic2any().then(function () {
+      return global.heic2any({ blob: file, toType: 'image/jpeg', quality: 0.85 });
+    }).then(function (result) {
+      // heic2any 可能返回数组（多帧 HEIC）或单 blob
+      var blob = Array.isArray(result) ? result[0] : result;
+      return new File([blob], (file.name || 'image').replace(/\.heic$/i, '.jpg').replace(/\.heif$/i, '.jpg'),
+        { type: 'image/jpeg', lastModified: Date.now() });
+    });
+  }
+
   function compressImage(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new global.FileReader();
-      reader.onload = event => {
-        const image = new global.Image();
-        image.onload = () => {
-          const canvas = global.document.createElement('canvas');
-          let { width, height } = image;
-          const maximum = 1500;
+    return new Promise(function (resolve, reject) {
+      // HEIC 先转 JPEG，再走正常压缩
+      if (isHeic(file)) {
+        convertHeic(file).then(function (jpeg) { compressImage(jpeg).then(resolve).catch(reject); }).catch(reject);
+        return;
+      }
+      var reader = new global.FileReader();
+      reader.onload = function (event) {
+        var image = new global.Image();
+        image.onload = function () {
+          var canvas = global.document.createElement('canvas');
+          var width = image.width;
+          var height = image.height;
+          var maximum = 1500;
           if (width > height) {
-            if (width > maximum) {
-              height *= maximum / width;
-              width = maximum;
-            }
-          } else if (height > maximum) {
-            width *= maximum / height;
-            height = maximum;
-          }
+            if (width > maximum) { height *= maximum / width; width = maximum; }
+          } else if (height > maximum) { width *= maximum / height; height = maximum; }
           canvas.width = width;
           canvas.height = height;
           canvas.getContext('2d').drawImage(image, 0, 0, width, height);
-          canvas.toBlob(blob => {
-            if (blob) resolve(blob);
-            else reject(new Error('IMAGE_COMPRESSION_FAILED'));
+          canvas.toBlob(function (blob) {
+            if (blob) resolve(blob); else reject(new Error('IMAGE_COMPRESSION_FAILED'));
           }, 'image/webp', 0.75);
         };
         image.onerror = reject;
