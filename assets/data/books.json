@@ -11,8 +11,7 @@
     "readingTime": 27,
     "link": "https://weread.qq.com/book-detail?type=1&v=33332bf05cbba0333b1efb4",
     "secret": 0,
-    "dominant_color": "#296578",
-    "dominant_color_dark": "#15353e"
+    "readUpdateTime": 1791005381
   },
   {
     "id": "3300220277",
@@ -26,8 +25,7 @@
     "readingTime": 46,
     "link": "https://weread.qq.com/book-detail?type=1&v=50232100813abbc8bg0176cd",
     "secret": 0,
-    "dominant_color": "#b41d22",
-    "dominant_color_dark": "#5e0f12"
+    "readUpdateTime": 1791097843
   },
   {
     "id": "44026191",
@@ -41,8 +39,7 @@
     "readingTime": 627,
     "link": "https://weread.qq.com/book-detail?type=1&v=e1e32b00729fc94fe1e824d",
     "secret": 0,
-    "dominant_color": "#b1935f",
-    "dominant_color_dark": "#5c4c31"
+    "readUpdateTime": 1791005406
   },
   {
     "id": "25615385",
@@ -56,7 +53,6 @@
     "readingTime": 126,
     "link": "https://weread.qq.com/book-detail?type=1&v=8b9329607186dc198b9bdab",
     "secret": 0,
-    "dominant_color": "#167bc0",
-    "dominant_color_dark": "#0b4064"
+    "readUpdateTime": 1790868352
   }
 ]
