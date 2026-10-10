@@ -1,0 +1,5 @@
+{{- $movies := slice -}}
+{{- with resources.Get "data/movies.json" -}}
+  {{- $movies = . | transform.Unmarshal -}}
+{{- end -}}
+{{- $movies | jsonify -}}

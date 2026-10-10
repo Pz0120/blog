@@ -1,0 +1,5 @@
+{{- $books := slice -}}
+{{- with resources.Get "data/books.json" -}}
+  {{- $books = . | transform.Unmarshal -}}
+{{- end -}}
+{{- $books | jsonify -}}
