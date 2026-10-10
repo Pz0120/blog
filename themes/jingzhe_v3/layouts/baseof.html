@@ -4,6 +4,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{{- /* App 内嵌：?embed=1（peixy-app 的 WebView 打开）隐藏全站导航和页脚，只留页面本体；
+     走过页自身的 reveal 按钮与时间线不受影响。 */ -}}
+<script>if(location.search.indexOf("embed=1")!==-1)document.documentElement.classList.add("embed-mode")</script>
+<style>html.embed-mode body.page-zouguo #wrapper,html.embed-mode body.page-zouguo .site-footer-wrapper{display:none}</style>
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   
   <title>{{ block "title" . }}{{ .Title }} - {{ site.Title }}{{ end }}</title>
