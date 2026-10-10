@@ -169,3 +169,146 @@
   line-height: 1.5;
   color: var(--text-info-color);
 }
+
+/* ===== 「去的日期」选择器（只到年月日，精美日历弹层） ================== */
+.dp-field {
+  position: relative;
+}
+
+.dp-field .dp-input {
+  color: transparent;
+  caret-color: transparent;
+  padding-right: 34px;
+}
+
+.dp-display {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-size: 14px;
+  color: var(--admin-input-color, #333);
+}
+
+.dp-display.is-empty {
+  color: var(--text-info-color, #adaba6);
+}
+
+.dp-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--text-info-color, #adaba6);
+}
+
+.dp-pop {
+  position: fixed;
+  z-index: 1000;
+  width: 280px;
+  max-width: calc(100vw - 24px);
+  background: var(--background-card-color, #fff);
+  border: 1px solid var(--theme-admin-input-border, #eeebe6);
+  border-radius: 14px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.16);
+  padding: 10px 12px 12px;
+  animation: dp-pop-in 0.14s ease;
+}
+
+@keyframes dp-pop-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+
+.dp-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.dp-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-content-color, #222);
+}
+
+.dp-nav {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--text-info-color, #adaba6);
+}
+
+.dp-nav:hover {
+  background: var(--theme-subtle-fill, rgba(0, 0, 0, 0.05));
+}
+
+.dp-week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-info-color, #adaba6);
+  margin-bottom: 4px;
+}
+
+.dp-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.dp-day {
+  border: 0;
+  background: transparent;
+  height: 34px;
+  border-radius: 50%;
+  font-size: 13px;
+  color: var(--text-content-color, #222);
+  cursor: pointer;
+}
+
+.dp-day:hover {
+  background: var(--theme-subtle-fill, rgba(0, 0, 0, 0.05));
+}
+
+.dp-day.is-today {
+  box-shadow: inset 0 0 0 1.5px #c63900;
+  color: #c63900;
+}
+
+.dp-day.is-selected {
+  background: #c63900;
+  color: #fff;
+  font-weight: 600;
+  box-shadow: none;
+}
+
+.dp-pad {
+  height: 34px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .dp-pop {
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+  }
+  .dp-day {
+    color: #f0eee9;
+  }
+  .dp-day.is-today {
+    color: #fa743e;
+    box-shadow: inset 0 0 0 1.5px #fa743e;
+  }
+  .dp-day.is-selected {
+    background: #c63900;
+    color: #fff;
+  }
+}

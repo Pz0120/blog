@@ -53,29 +53,29 @@
 
     function pad2(value) { return String(value).padStart(2, '0'); }
 
-    /* datetime-local 的 "2026-10-08T14:30" → 带本机时区的 ISO。
+    /* 日期只到年月日（颗粒度要求）："YYYY-MM-DD" → 当地零点 ISO "…T00:00:00±HH:MM"。
+       兼容旧草稿里的 datetime 值（正则截断到日期部分）。
        Hugo 的 time.AsTime 要求结尾是 Z 或 ±HH:MM。 */
-    function isoWithOffset(localValue) {
-        const date = new Date(localValue);
-        if (Number.isNaN(date.getTime())) return '';
-        const offset = -date.getTimezoneOffset();
+    function isoWithOffset(dateValue) {
+        const match = String(dateValue || '').match(/^(\d{4}-\d{2}-\d{2})/);
+        if (!match) return '';
+        const midnight = new Date(`${match[1]}T00:00:00`);
+        if (Number.isNaN(midnight.getTime())) return '';
+        const offset = -midnight.getTimezoneOffset();
         const sign = offset >= 0 ? '+' : '-';
         const abs = Math.abs(offset);
-        return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`
-            + `T${pad2(date.getHours())}:${pad2(date.getMinutes())}:00`
-            + `${sign}${pad2(Math.floor(abs / 60))}:${pad2(abs % 60)}`;
+        return `${match[1]}T00:00:00${sign}${pad2(Math.floor(abs / 60))}:${pad2(abs % 60)}`;
     }
 
-    /* 带时区的 ISO → datetime-local 需要的 "YYYY-MM-DDTHH:MM" */
+    /* 带时区的 ISO → 输入框用的 "YYYY-MM-DD"（时间部分丢弃） */
     function toLocalInputValue(isoValue) {
-        const match = String(isoValue || '').match(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/);
-        return match ? `${match[1]}T${match[2]}` : '';
+        const match = String(isoValue || '').match(/^(\d{4}-\d{2}-\d{2})/);
+        return match ? match[1] : '';
     }
 
     function nowLocalValue() {
         const d = new Date();
-        return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`
-            + `T${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+        return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
     }
 
     function ensurePlacePicker() {
@@ -116,7 +116,7 @@
         const whenLocal = zouguoWhenEl.value || nowLocalValue();
         const occurredAt = isoWithOffset(whenLocal);
         if (!occurredAt) {
-            return { enabled: true, error: '「去的日期时间」格式不对，重新选一下' };
+            return { enabled: true, error: '「去的日期」格式不对，重新选一下' };
         }
         return { enabled: true, place, occurredAt };
     }
@@ -747,5 +747,122 @@
         verifyToken,
         wrapText
     });
+
+    /* ---------- 「去的日期」精美选择器（只到年月日） ----------
+       值仍是原始 "YYYY-MM-DD" 存在 #zouguoWhen 里（草稿、回填、ISO 转换都复用），
+       展示层 .dp-display 显示中文日期。value 的 setter 被接管 —— 代码里到处是
+       zouguoWhenEl.value = ... 的程序赋值，input 事件不会响，只能从 setter 同步。 */
+    (function initDatePicker() {
+        const input = document.getElementById('zouguoWhen');
+        if (!input) return;
+        const field = input.closest('.dp-field') || input.parentElement;
+        const display = document.getElementById('zouguoWhenDisplay');
+        const WEEK = ['日', '一', '二', '三', '四', '五', '六'];
+        let view = null;
+        let pop = null;
+
+        const descriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+        Object.defineProperty(input, 'value', {
+            configurable: true,
+            get() { return descriptor.get.call(this); },
+            set(v) { descriptor.set.call(this, v); syncLabel(); }
+        });
+
+        function todayStr() {
+            const d = new Date();
+            return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+        }
+        function fmtLabel(v) {
+            const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(v || '');
+            return m ? `${m[1]}年${Number(m[2])}月${Number(m[3])}日` : '';
+        }
+        function syncLabel() {
+            if (!display) return;
+            const text = fmtLabel(input.value);
+            display.textContent = text || '点选日期';
+            display.classList.toggle('is-empty', !text);
+        }
+        syncLabel();
+
+        function node(tag, cls) {
+            const n = document.createElement(tag);
+            if (cls) n.className = cls;
+            return n;
+        }
+        function render() {
+            const y = view.y;
+            const m = view.m;
+            pop.querySelector('.dp-title').textContent = `${y} 年 ${m} 月`;
+            const grid = pop.querySelector('.dp-grid');
+            grid.textContent = '';
+            const firstDay = new Date(y, m - 1, 1).getDay();
+            const days = new Date(y, m, 0).getDate();
+            const selected = String(input.value || '');
+            const today = todayStr();
+            for (let i = 0; i < firstDay; i++) grid.appendChild(node('span', 'dp-pad'));
+            for (let d = 1; d <= days; d++) {
+                const value = `${y}-${pad2(m)}-${pad2(d)}`;
+                const btn = node('button', 'dp-day'
+                    + (value === selected ? ' is-selected' : '')
+                    + (value === today ? ' is-today' : ''));
+                btn.type = 'button';
+                btn.textContent = String(d);
+                btn.addEventListener('click', function () {
+                    input.value = value;
+                    input.dispatchEvent(new Event('input'));
+                    close();
+                });
+                grid.appendChild(btn);
+            }
+        }
+        function open() {
+            const now = new Date();
+            const base = /^(\d{4})-(\d{2})/.exec(String(input.value || '')) ||
+                /^(\d{4})-(\d{2})/.exec(todayStr());
+            view = base
+                ? { y: Number(base[1]), m: Number(base[2]) }
+                : { y: now.getFullYear(), m: now.getMonth() + 1 };
+            if (!pop) {
+                pop = node('div', 'dp-pop');
+                pop.hidden = true;
+                pop.innerHTML =
+                    '<div class="dp-head">' +
+                    '<button type="button" class="dp-nav dp-prev" aria-label="上个月">‹</button>' +
+                    '<span class="dp-title"></span>' +
+                    '<button type="button" class="dp-nav dp-next" aria-label="下个月">›</button>' +
+                    '</div><div class="dp-week"></div><div class="dp-grid"></div>';
+                pop.querySelector('.dp-week').innerHTML =
+                    WEEK.map(function (w) { return '<span>' + w + '</span>'; }).join('');
+                pop.querySelector('.dp-prev').addEventListener('click', function () {
+                    view.m -= 1;
+                    if (view.m < 1) { view.m = 12; view.y -= 1; }
+                    render();
+                });
+                pop.querySelector('.dp-next').addEventListener('click', function () {
+                    view.m += 1;
+                    if (view.m > 12) { view.m = 1; view.y += 1; }
+                    render();
+                });
+                document.body.appendChild(pop);
+                document.addEventListener('mousedown', onOutside, true);
+                window.addEventListener('scroll', close, true);
+            }
+            const rect = field.getBoundingClientRect();
+            pop.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - 296)) + 'px';
+            pop.style.top = (rect.bottom + 6) + 'px';
+            pop.hidden = false;
+            render();
+        }
+        function close() { if (pop) pop.hidden = true; }
+        function onOutside(event) {
+            if (pop && !pop.hidden && !pop.contains(event.target) && !field.contains(event.target)) {
+                close();
+            }
+        }
+        input.addEventListener('click', function () {
+            if (pop && !pop.hidden) close(); else open();
+        });
+    })();
+
     initApp();
 })();
