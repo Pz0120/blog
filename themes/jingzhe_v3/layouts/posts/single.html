@@ -2,6 +2,12 @@
 {{ define "main" }} 
 
 <article class="single-article-container">
+  {{- /* 朋友圈式头部：头像 + 昵称 + 右侧时间（排版级，不造假互动数据） */ -}}
+  <div class="moment-meta">
+    <span class="moment-avatar" aria-hidden="true">{{ substr (site.Title) 0 1 | lower }}</span>
+    <span class="moment-name">{{ site.Title }}</span>
+    <time class="moment-time" datetime="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">{{ partial "jingzhe/date.html" .Date }}</time>
+  </div>
   
   <header class="article-header">
     <h1 class="article-title">{{ .Title }}</h1>
@@ -40,6 +46,9 @@
     {{ if partial "jingzhe/feature-enabled.html" "social" }}{{ partial "comments.html" . }}{{ end }}
   </div>
 
+
+  {{- /* 连续图片分组（朋友圈网格）：JS 不可用时退回竖排，不影响阅读 */ -}}
+  {{ partial "jingzhe/script.html" (dict "path" "js/pages/moment-grid.js" "defer" true) }}
 </article> 
 
 {{ end }}

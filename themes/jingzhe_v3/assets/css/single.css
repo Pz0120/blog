@@ -310,3 +310,105 @@
 .page-bowen-admin .article-comments {
   margin-top: 30px;
 }
+
+/* ===== 朋友圈 / 微博式排版（排版级，仅阅读页；后台编辑页不动） =========
+   连续图片网格由 js/pages/moment-grid.js 分组；JS 不可用时退回上面的竖排。 */
+.page-blog-single .single-article-container {
+  max-width: 560px;
+  margin: 0 auto;
+  background: var(--background-card-color);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 16px;
+  padding: 20px 16px 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+@media (min-width: 768px) {
+  .page-blog-single .single-article-container {
+    padding: 28px 28px 12px;
+  }
+}
+
+/* 头部行：头像 + 昵称 + 右侧时间 */
+.page-blog-single .moment-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 14px 0;
+}
+
+.page-blog-single .moment-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--text-highlight-color);
+  color: #fff;
+  font-weight: 600;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.page-blog-single .moment-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-content-color);
+}
+
+.page-blog-single .moment-time {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--text-info-color);
+}
+
+/* 标题降为微博式粗体导语；H1 语义保留给 SEO */
+.page-blog-single .article-header .article-title {
+  font-size: 1.05rem;
+  line-height: 1.5;
+  margin: 0 0 10px 0;
+  font-weight: 700;
+}
+
+@media (min-width: 768px) {
+  .page-blog-single .article-header .article-title {
+    font-size: 1.1rem;
+  }
+}
+
+/* 页脚日期与头部时间重复，收起 */
+.page-blog-single .post-meta {
+  display: none;
+}
+
+/* 连续图片网格：2/4 张两列，其余三列，正方形裁切 */
+.page-blog-single .moment-grid {
+  display: grid;
+  gap: 6px;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 15px 0;
+}
+
+.page-blog-single .moment-grid[data-n="2"],
+.page-blog-single .moment-grid[data-n="4"] {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.page-blog-single .moment-grid .post-figure {
+  margin: 0;
+}
+
+.page-blog-single .moment-grid .post-figure img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  margin: 0;
+  border-radius: 8px;
+  display: block;
+}
+
+/* 网格里不排字幕，保住方格（alt 还在，无障碍不受影响） */
+.page-blog-single .moment-grid .post-figcaption {
+  display: none;
+}
