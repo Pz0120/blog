@@ -3,10 +3,16 @@
 
 <article class="single-article-container">
   {{- /* 朋友圈式头部：头像 + 昵称 + 右侧时间（排版级，不造假互动数据） */ -}}
+  {{- /* 时间优先用走过 occurred_at（作者设置的发生日期），否则发布日期 */ -}}
+  {{- $momentAuthor := site.Params.brand.authorName | default "Pz" -}}
+  {{- $momentDate := .Date -}}
+  {{- with .Params.zouguo -}}
+    {{- with .occurred_at -}}{{- $momentDate = time . -}}{{- end -}}
+  {{- end -}}
   <div class="moment-meta">
-    <span class="moment-avatar" aria-hidden="true">{{ substr (site.Title) 0 1 | lower }}</span>
-    <span class="moment-name">{{ site.Title }}</span>
-    <time class="moment-time" datetime="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">{{ partial "jingzhe/date.html" .Date }}</time>
+    <span class="moment-avatar" aria-hidden="true">{{ substr $momentAuthor 0 1 }}</span>
+    <span class="moment-name">{{ $momentAuthor }}</span>
+    <time class="moment-time" datetime="{{ $momentDate.Format "2006-01-02T15:04:05Z07:00" }}">{{ partial "jingzhe/date.html" $momentDate }}</time>
   </div>
   
   <header class="article-header">

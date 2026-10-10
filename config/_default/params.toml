@@ -9,6 +9,7 @@ RSSNoContent = false
   email = ""
 
 [brand]
+authorName = "Pz"
   name = "peixy"
   footerName = "peixy"
   footerTagline = "记录工作、生活，和一些没用的折腾"
